@@ -273,7 +273,8 @@ function App() {
         <VideoColumn 
           title="Past 7 Days & Saved" 
           videos={pastVideos} 
-          emptyMessage={loading ? "Loading..." : "No recent videos"}
+          emptyMessage="No recent videos"
+          loading={loading}
           {...commonProps}
         />
       </div>
@@ -283,7 +284,8 @@ function App() {
         <VideoColumn 
           title="Today" 
           videos={todayVideos} 
-          emptyMessage={loading ? "Loading..." : "No videos today"}
+          emptyMessage="No videos today"
+          loading={loading}
           {...commonProps}
         />
       </div>

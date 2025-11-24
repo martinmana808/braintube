@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import VideoCard from './VideoCard';
-import { Search, ChevronDown } from 'lucide-react';
+import { Search, ChevronDown, Loader } from 'lucide-react';
 
-const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, onToggleSaved, onDelete, categories = [], channels = [], onVideoClick }) => {
+const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, onToggleSaved, onDelete, categories = [], channels = [], onVideoClick, loading }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
 
@@ -249,8 +249,13 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
           </div>
         )}
 
-        {/* Empty State: No videos at all */}
-        {filteredVideos.length === 0 && (
+        {/* Empty State / Loading */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center mt-20 text-green-500">
+            <Loader className="w-8 h-8 animate-spin mb-2" />
+            <span className="text-xs font-mono uppercase tracking-wider">Loading...</span>
+          </div>
+        ) : filteredVideos.length === 0 && (
           <div className="text-center text-gray-600 mt-10 font-mono text-sm">
             {searchQuery ? 'No matches found' : (emptyMessage || 'No videos found')}
           </div>
