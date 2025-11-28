@@ -1,25 +1,47 @@
-# TO DO
-- AI for summarising videos
+# BrainTube
 
-# Ideas
-- Users auth
-- BEtter UI more like Serial
-- 
+**BrainTube** is a curated, distraction-free YouTube experience designed for learning and productivity. It allows you to build a personalized feed of high-quality channels, organize them into categories, and leverage AI to summarize and interact with video content.
 
+## Key Features
 
-# React + Vite
+### 1. Curated Feed
+Your feed is organized into three focused columns:
+-   **Past 7 Days & Saved**: Catch up on recent uploads from your monitored channels and access your "Saved for Later" library.
+-   **Today**: See only the videos released today, keeping you up-to-date without the noise.
+-   **System Config**: Manage your channels, categories, and API settings.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+### 2. AI Intelligence
+BrainTube integrates with Groq's Llama 3 to supercharge your viewing:
+-   **Quick Summary**:
+    -   **Instant Overview**: Click the **Sparkles icon** on any video card to read a concise, bulleted summary of the video without opening it.
+    -   **On-Demand Generation**: If a summary doesn't exist (gray icon), clicking it will generate one instantly.
+-   **Chat with Video**:
+    -   Open a video and switch to the **CHAT** tab to ask questions about the content. The AI answers based strictly on the video's transcript.
 
-Currently, two official plugins are available:
+### 3. Organization & Focus
+-   **Categories**: Group your channels (e.g., "Tech", "Science", "Music") to filter your feed.
+-   **Solo Mode**: Want to focus? Click the **Eye icon** next to a channel in the settings to enter "Solo Mode". Your feed will instantly filter to show *only* videos from that channel.
+-   **Progress Tracking**:
+    -   **Mark as Seen**: Hide videos you've watched or aren't interested in.
+    -   **Trash**: Move irrelevant videos to the trash (they can be restored later).
+    -   **Saved**: Bookmark videos to watch later.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Getting Started
 
-## React Compiler
+### 1. Setup
+1.  **YouTube API Key**: You need a YouTube Data API key to fetch videos. Enter it in the "System Config" panel.
+2.  **Groq API Key**: To use AI features (Summaries & Chat), get a free API key from [console.groq.com](https://console.groq.com) and enter it in the config panel.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 2. Managing Channels
+-   **Add**: Paste a Channel ID, Handle (e.g., `@Veritasium`), or URL into the "Add Channel" box.
+-   **Categorize**: Click the category pill next to a channel to assign it to a category.
+-   **Solo**: Click the **Eye icon** to focus on a single channel. Click the **Crossed-Eye icon** to return to the full feed.
 
-## Expanding the ESLint configuration
+### 3. Watching & Interacting
+-   **Click a video** to open the player.
+-   **Summary**: Read the AI-generated summary in the "SUMMARY" tab.
+-   **Chat**: Ask questions in the "CHAT" tab.
+-   **Quick Summary**: Look for the Sparkles icon on the video card in the main list.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+*Built for the curious mind.*

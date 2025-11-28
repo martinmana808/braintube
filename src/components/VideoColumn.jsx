@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import VideoCard from './VideoCard';
 import { Search, ChevronDown, Loader } from 'lucide-react';
 
-const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, onToggleSaved, onDelete, categories = [], channels = [], onVideoClick, loading }) => {
+const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, onToggleSaved, onDelete, categories = [], channels = [], onVideoClick, loading, onViewSummary, showBin = true, showSaved = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
 
@@ -49,19 +49,38 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
 
   const clearCategories = () => setSelectedCategoryIds([]);
 
-  const activeVideos = filteredVideos.filter(v => !videoStates?.[v.id]?.seen && !videoStates?.[v.id]?.deleted);
-  const seenVideos = filteredVideos.filter(v => videoStates?.[v.id]?.seen && !videoStates?.[v.id]?.deleted);
   const deletedVideos = filteredVideos.filter(v => videoStates?.[v.id]?.deleted);
+  
+  // If showSaved is true, we separate saved videos from active/seen
+  const savedVideos = showSaved ? filteredVideos.filter(v => videoStates?.[v.id]?.saved && !videoStates?.[v.id]?.deleted) : [];
+  
+  // Active/Seen should exclude saved videos IF showSaved is true
+  const activeVideos = filteredVideos.filter(v => 
+    !videoStates?.[v.id]?.seen && 
+    !videoStates?.[v.id]?.deleted && 
+    (!showSaved || !videoStates?.[v.id]?.saved)
+  );
+  
+  const seenVideos = filteredVideos.filter(v => 
+    videoStates?.[v.id]?.seen && 
+    !videoStates?.[v.id]?.deleted &&
+    (!showSaved || !videoStates?.[v.id]?.saved)
+  );
 
   const [isNewCollapsed, setIsNewCollapsed] = useState(false);
   const [isSeenCollapsed, setIsSeenCollapsed] = useState(true);
   const [isDeletedCollapsed, setIsDeletedCollapsed] = useState(true);
+  const [isSavedCollapsed, setIsSavedCollapsed] = useState(false); // Default open for Saved
+
   const [isNewFlashing, setIsNewFlashing] = useState(false);
   const [isSeenFlashing, setIsSeenFlashing] = useState(false);
   const [isDeletedFlashing, setIsDeletedFlashing] = useState(false);
+  const [isSavedFlashing, setIsSavedFlashing] = useState(false);
+
   const [prevNewCount, setPrevNewCount] = useState(0);
   const [prevSeenCount, setPrevSeenCount] = useState(0);
   const [prevDeletedCount, setPrevDeletedCount] = useState(0);
+  const [prevSavedCount, setPrevSavedCount] = useState(0);
 
   // Trigger flash animation when items are added to New, Seen or Trash
   useEffect(() => {
@@ -91,19 +110,29 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
     setPrevDeletedCount(deletedVideos.length);
   }, [deletedVideos.length, isDeletedCollapsed]);
 
+  useEffect(() => {
+    if (savedVideos.length > prevSavedCount && prevSavedCount > 0 && isSavedCollapsed) {
+      setIsSavedFlashing(true);
+      const timer = setTimeout(() => setIsSavedFlashing(false), 500);
+      return () => clearTimeout(timer);
+    }
+    setPrevSavedCount(savedVideos.length);
+  }, [savedVideos.length, isSavedCollapsed]);
+
   const videoCardProps = {
     onToggleSeen,
     onToggleSaved,
     onDelete,
     onClick: onVideoClick,
     videoStates, // Pass videoStates down to VideoCard
+    onViewSummary,
   };
 
   return (
     <div className="flex flex-col h-full bg-black border-r border-gray-800 last:border-r-0">
       <div className="mb-4 border-b border-gray-800 pb-4 p-4">
         <h2 className="text-lg font-bold text-green-500 mb-3 font-mono uppercase tracking-wider">
-          {title} <span className="text-gray-600 text-sm ml-2">[{filteredVideos.length - deletedVideos.length}]</span>
+          {title} <span className="text-gray-600 text-sm ml-2">[{filteredVideos.length - (showBin ? deletedVideos.length : 0)}]</span>
         </h2>
         
         <div className="relative mb-3">
@@ -150,7 +179,40 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
       </div>
       
       <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-        {/* Active Videos */}
+        
+        {/* Saved Videos Section (Only if showSaved is true) */}
+        {showSaved && savedVideos.length > 0 && (
+          <div className="mb-4">
+            <button 
+              onClick={() => setIsSavedCollapsed(!isSavedCollapsed)}
+              className="flex items-center gap-2 w-full text-left mb-4 group"
+            >
+              <div className={`transition-transform duration-200 ${isSavedCollapsed ? '-rotate-90' : 'rotate-0'}`}>
+                <ChevronDown className="w-4 h-4 text-gray-500 group-hover:text-gray-300" />
+              </div>
+              <h3 className={`text-xs font-bold uppercase tracking-wider group-hover:text-gray-300 transition-colors font-mono ${
+                isSavedFlashing ? 'text-green-500' : 'text-gray-500'
+              }`}>
+                Saved [{savedVideos.length}]
+              </h3>
+            </button>
+
+            {!isSavedCollapsed && (
+              <div className="space-y-4">
+                {savedVideos.map((video) => (
+                  <VideoCard 
+                    key={video.id} 
+                    video={video} 
+                    state={videoStates?.[video.id] || {}}
+                    {...videoCardProps}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Active Videos (Unwatched) */}
         <div className="mb-4">
           <button 
             onClick={() => setIsNewCollapsed(!isNewCollapsed)}
@@ -162,7 +224,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
             <h3 className={`text-xs font-bold uppercase tracking-wider group-hover:text-gray-300 transition-colors font-mono ${
               isNewFlashing ? 'text-green-500' : 'text-gray-500'
             }`}>
-              New [{activeVideos.length}]
+              Unwatched [{activeVideos.length}]
             </h3>
           </button>
 
@@ -178,7 +240,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
               ))}
               {activeVideos.length === 0 && filteredVideos.length > 0 && (
                 <div className="text-center text-gray-600 py-8 font-mono text-sm italic">
-                  All new videos have been seen already
+                  All videos watched
                 </div>
               )}
             </div>
@@ -198,7 +260,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
               <h3 className={`text-xs font-bold uppercase tracking-wider group-hover:text-gray-300 transition-colors font-mono ${
                 isSeenFlashing ? 'text-green-500' : 'text-gray-500'
               }`}>
-                Seen [{seenVideos.length}]
+                Watched [{seenVideos.length}]
               </h3>
             </button>
             
@@ -217,8 +279,8 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
           </div>
         )}
 
-        {/* Deleted Videos Section */}
-        {deletedVideos.length > 0 && (
+        {/* Deleted Videos Section (Bin) - Only if showBin is true */}
+        {showBin && deletedVideos.length > 0 && (
           <div className="pt-4 border-t border-gray-800">
             <button 
               onClick={() => setIsDeletedCollapsed(!isDeletedCollapsed)}
@@ -230,7 +292,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
               <h3 className={`text-xs font-bold uppercase tracking-wider group-hover:text-gray-300 transition-colors font-mono ${
                 isDeletedFlashing ? 'text-green-500' : 'text-gray-500'
               }`}>
-                Trash [{deletedVideos.length}]
+                Bin [{deletedVideos.length}]
               </h3>
             </button>
 

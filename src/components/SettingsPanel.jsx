@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, Plus, Key, Eye, EyeOff, FolderPlus, Folder } from 'lucide-react';
+import { Trash2, Plus, Key, Eye, EyeOff, FolderPlus, Folder, ChevronDown } from 'lucide-react';
 
 const SettingsPanel = ({ 
   apiKey, setApiKey, 
@@ -125,7 +125,7 @@ const SettingsPanel = ({
               }`}
               title={soloChannelIds.includes(channel.id) ? "Un-solo" : "Solo this channel"}
             >
-              {soloChannelIds.includes(channel.id) ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              {soloChannelIds.includes(channel.id) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
             <button
               onClick={() => onRemoveChannel(channel.id)}
@@ -141,6 +141,19 @@ const SettingsPanel = ({
   );
 
   const [viewMode, setViewMode] = useState('categories'); // 'categories' or 'all'
+  const [collapsedCategories, setCollapsedCategories] = useState(new Set());
+
+  const toggleCategoryCollapse = (categoryId) => {
+    setCollapsedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  };
 
   return (
     <div className="flex flex-col h-full bg-gray-900 p-4 overflow-y-auto border-l border-gray-800">
@@ -271,40 +284,59 @@ const SettingsPanel = ({
         ) : (
           <div className="space-y-6">
             {/* Categories */}
-            {categories.map(cat => (
-              <div key={cat.id}>
-                <div className="flex items-center justify-between mb-2 group">
-                  <div className="flex items-center gap-2 text-gray-400 font-mono text-xs uppercase tracking-wider">
-                    <Folder className="h-3 w-3" />
-                    {cat.name}
-                    <span className="text-gray-600">[{groupedChannels[cat.id]?.length || 0}]</span>
+            {categories.map(cat => {
+              const isCollapsed = collapsedCategories.has(cat.id);
+              return (
+                <div key={cat.id}>
+                  <div className="flex items-center justify-between mb-2 group">
+                    <button 
+                      onClick={() => toggleCategoryCollapse(cat.id)}
+                      className="flex items-center gap-2 text-gray-400 font-mono text-xs uppercase tracking-wider hover:text-gray-200 transition-colors"
+                    >
+                      <div className={`transition-transform duration-200 ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}>
+                        <ChevronDown className="h-3 w-3" />
+                      </div>
+                      <Folder className="h-3 w-3" />
+                      {cat.name}
+                      <span className="text-gray-600">[{groupedChannels[cat.id]?.length || 0}]</span>
+                    </button>
+                    <button 
+                      onClick={() => onDeleteCategory(cat.id)}
+                      className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => onDeleteCategory(cat.id)}
-                    className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
+                  {!isCollapsed && (
+                    groupedChannels[cat.id]?.length > 0 ? (
+                      renderChannelList(groupedChannels[cat.id])
+                    ) : (
+                      <div className="text-gray-700 text-xs italic pl-5">Empty category</div>
+                    )
+                  )}
                 </div>
-                {groupedChannels[cat.id]?.length > 0 ? (
-                  renderChannelList(groupedChannels[cat.id])
-                ) : (
-                  <div className="text-gray-700 text-xs italic pl-5">Empty category</div>
-                )}
-              </div>
-            ))}
+              );
+            })}
 
             {/* Uncategorized */}
             <div>
-              <div className="flex items-center gap-2 mb-2 text-gray-500 font-mono text-xs uppercase tracking-wider">
+              <button 
+                onClick={() => toggleCategoryCollapse('uncategorized')}
+                className="flex items-center gap-2 mb-2 text-gray-500 font-mono text-xs uppercase tracking-wider hover:text-gray-300 transition-colors"
+              >
+                <div className={`transition-transform duration-200 ${collapsedCategories.has('uncategorized') ? '-rotate-90' : 'rotate-0'}`}>
+                  <ChevronDown className="h-3 w-3" />
+                </div>
                 <Folder className="h-3 w-3" />
                 Uncategorized
                 <span className="text-gray-600">[{groupedChannels.uncategorized.length}]</span>
-              </div>
-              {groupedChannels.uncategorized.length > 0 ? (
-                renderChannelList(groupedChannels.uncategorized)
-              ) : (
-                <div className="text-gray-700 text-xs italic pl-5">No uncategorized channels</div>
+              </button>
+              {!collapsedCategories.has('uncategorized') && (
+                groupedChannels.uncategorized.length > 0 ? (
+                  renderChannelList(groupedChannels.uncategorized)
+                ) : (
+                  <div className="text-gray-700 text-xs italic pl-5">No uncategorized channels</div>
+                )
               )}
             </div>
           </div>

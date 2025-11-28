@@ -59,3 +59,34 @@ export const chatWithVideo = async (transcript, history, question, apiKey) => {
   const data = await response.json();
   return data.choices[0].message.content;
 };
+
+export const generateTags = async (title, channelTitle, apiKey) => {
+  const prompt = `Generate 3-5 relevant hashtags for a YouTube video with the following details:
+  Title: "${title}"
+  Channel: "${channelTitle}"
+  
+  Return ONLY the hashtags separated by spaces (e.g., #Tech #AI #Coding). Do not include any other text.`;
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      messages: [{
+        role: 'user',
+        content: prompt
+      }],
+      model: 'llama-3.3-70b-versatile'
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error?.message || 'Failed to generate tags with Groq');
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content.trim().split(' ');
+};

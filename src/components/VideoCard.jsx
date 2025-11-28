@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { ExternalLink, Eye, EyeOff, Heart, Trash2, RotateCcw } from 'lucide-react';
+import { ExternalLink, Eye, EyeOff, Heart, Trash2, RotateCcw, Sparkles } from 'lucide-react';
 import { formatDuration, parseDurationToSeconds } from '../utils/formatters';
 
-const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClick }) => {
-  const { seen, saved, deleted } = state;
+const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClick, onViewSummary }) => {
+  const { seen, saved, deleted, summary } = state;
   const [isExiting, setIsExiting] = useState(false);
   const [isMounting, setIsMounting] = useState(true);
 
@@ -86,12 +86,22 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
               >
                 <Heart className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
               </button>
+              <button 
+                onClick={(e) => { 
+                  e.stopPropagation(); 
+                  onViewSummary(video);
+                }}
+                className={`p-1.5 rounded hover:bg-gray-800 transition-colors ${summary ? 'text-gray-200 hover:text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                title={summary ? "View Summary" : "Generate Summary"}
+              >
+                <Sparkles className="w-4 h-4" />
+              </button>
             </>
           )}
           <button 
             onClick={(e) => handleAction(e, onDelete)}
             className={`p-1.5 rounded hover:bg-gray-800 transition-colors ${deleted ? 'text-blue-500 hover:text-blue-400' : 'text-gray-600 hover:text-red-500'}`}
-            title={deleted ? "Undo Delete" : "Delete Video"}
+            title={deleted ? "Restore from bin" : "Put video in the bin"}
           >
             {deleted ? <RotateCcw className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
           </button>

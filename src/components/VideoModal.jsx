@@ -1,15 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import YouTube from 'react-youtube';
-import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, MessageSquare, Send } from 'lucide-react';
+import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, MessageSquare, Send, Tag } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../services/supabase';
-import { generateSummary as generateSummaryService, chatWithVideo } from '../services/ai';
+import { generateSummary as generateSummaryService, chatWithVideo, generateTags } from '../services/ai';
 
 const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onToggleSaved, onDelete }) => {
   const { seen, saved, deleted } = state || {};
-  const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'chat'
+  const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'chat' | 'tags'
   const [summary, setSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
+  const [tags, setTags] = useState([]);
+  const [loadingTags, setLoadingTags] = useState(false);
   const [transcript, setTranscript] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
@@ -22,12 +24,13 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
     const fetchSummary = async () => {
       const { data, error } = await supabase
         .from('video_metadata')
-        .select('summary')
+        .select('summary, tags')
         .eq('video_id', video.id)
         .single();
       
-      if (data?.summary) {
-        setSummary(data.summary);
+      if (data) {
+        if (data.summary) setSummary(data.summary);
+        if (data.tags) setTags(data.tags);
       }
     };
     fetchSummary();
@@ -114,6 +117,32 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
     }
   };
 
+/*
+  const handleGenerateTags = async () => {
+    setLoadingTags(true);
+    try {
+      const generatedTags = await generateTags(video.title, video.channelTitle, aiApiKey);
+      setTags(generatedTags);
+
+      // Save to Supabase
+      // Note: User needs to add 'tags' column to video_metadata table
+      await supabase.from('video_metadata').upsert({
+        video_id: video.id,
+        tags: generatedTags,
+        last_updated: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error("Error generating tags:", err);
+      // Don't show error to user if it's just saving that failed (e.g. column missing)
+      if (err.message && !err.message.includes('tags')) {
+         setError(err.message);
+      }
+    } finally {
+      setLoadingTags(false);
+    }
+  };
+*/
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden w-full max-w-6xl h-[80vh] flex shadow-2xl relative" onClick={e => e.stopPropagation()}>
@@ -190,10 +219,10 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
                <button 
                  onClick={() => onDelete(video.id)}
                  className={`flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors ${deleted ? 'bg-blue-900/30 text-blue-500' : 'bg-gray-800 text-gray-200 hover:bg-red-900/30 hover:text-red-500'}`}
-                 title={deleted ? "Undo Delete" : "Delete Video"}
+                 title={deleted ? "Restore from bin" : "Put video in the bin"}
                >
                  {deleted ? <RotateCcw className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
-                 <span className="text-xs font-bold">{deleted ? 'RESTORE' : 'TRASH'}</span>
+                 <span className="text-xs font-bold">{deleted ? 'RESTORE' : 'BIN'}</span>
                </button>
             </div>
 
@@ -223,6 +252,20 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400" />
                 )}
               </button>
+              {/* 
+              <button
+                onClick={() => setActiveTab('tags')}
+                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'tags' ? 'text-purple-400' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <Tag className="w-4 h-4" />
+                  TAGS
+                </div>
+                {activeTab === 'tags' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-400" />
+                )}
+              </button>
+              */}
             </div>
           </div>
 
@@ -267,7 +310,55 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
                   </div>
                 )}
               </div>
-            ) : (
+            ) : /* activeTab === 'tags' ? (
+              <div className="p-6">
+                {tags && tags.length > 0 ? (
+                  <div className="space-y-6">
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag, idx) => (
+                        <span key={idx} className="px-3 py-1 bg-purple-900/30 text-purple-400 rounded-full text-sm font-medium border border-purple-900/50">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <button
+                      onClick={handleGenerateTags}
+                      disabled={loadingTags}
+                      className="text-xs text-gray-500 hover:text-gray-300 underline"
+                    >
+                      Regenerate Tags
+                    </button>
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-4 mt-10">
+                    <div className="bg-gray-900 p-4 rounded-full mb-4">
+                      <Tag className="w-8 h-8 text-purple-500" />
+                    </div>
+                    <h3 className="text-gray-200 font-bold mb-2">No Tags Yet</h3>
+                    <p className="text-gray-500 text-sm mb-6 max-w-xs">
+                      Generate smart tags based on the video title and channel.
+                    </p>
+                    <button
+                      onClick={handleGenerateTags}
+                      disabled={loadingTags}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loadingTags ? (
+                        <>
+                          <Loader className="w-4 h-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Tag className="w-4 h-4" />
+                          Generate Tags
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : */ (
               <div className="flex flex-col h-full">
                 <div className="flex-1 p-4 space-y-4">
                   {chatMessages.length === 0 ? (

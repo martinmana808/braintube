@@ -4,7 +4,9 @@ import VideoColumn from './components/VideoColumn';
 import SettingsPanel from './components/SettingsPanel';
 import { fetchChannelDetails, fetchVideos } from './services/youtube';
 import { supabase } from './services/supabase';
+import { generateSummary as generateSummaryService } from './services/ai';
 import VideoModal from './components/VideoModal';
+import SummaryModal from './components/SummaryModal';
 
 function App() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('yt_curator_api_key') || import.meta.env.VITE_YOUTUBE_API_KEY || '');
@@ -14,6 +16,8 @@ function App() {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [viewingSummaryVideo, setViewingSummaryVideo] = useState(null);
+  const [generatingSummaryId, setGeneratingSummaryId] = useState(null);
 
   const [categories, setCategories] = useState([]);
   const [soloChannelIds, setSoloChannelIds] = useState([]);
@@ -31,6 +35,7 @@ function App() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      console.log('App: fetchData started');
       
       // Fetch Categories
       const { data: categoriesData, error: categoriesError } = await supabase.from('categories').select('*').order('name');
@@ -51,6 +56,7 @@ function App() {
             seen: item.seen, 
             saved: item.saved, 
             deleted: item.deleted, 
+            summary: item.summary,
             lastUpdated: new Date(item.last_updated).getTime() 
           };
           return acc;
@@ -59,6 +65,7 @@ function App() {
       }
       
       setLoading(false);
+      console.log('App: fetchData finished', { categories: categoriesData?.length, channels: channelsData?.length });
     };
 
     fetchData();
@@ -70,6 +77,7 @@ function App() {
 
     const fetchAllVideos = async () => {
       setLoading(true);
+      console.log('App: fetchAllVideos started', { channelsCount: channels.length });
       try {
         // If solo mode is active (any channel soloed), only fetch/show those.
         // Actually, we should probably fetch ALL videos but filter them in the UI?
@@ -91,6 +99,7 @@ function App() {
         console.error("Error fetching videos:", error);
       } finally {
         setLoading(false);
+        console.log('App: fetchAllVideos finished');
       }
     };
 
@@ -223,6 +232,7 @@ function App() {
       seen: newState.seen || false,
       saved: newState.saved || false,
       deleted: newState.deleted || false,
+      summary: newState.summary,
       last_updated: new Date().toISOString()
     });
 
@@ -268,7 +278,41 @@ function App() {
     onDelete: deleteVideo,
     categories,
     channels,
-    onVideoClick: (video) => setSelectedVideo(video)
+    onVideoClick: (video) => setSelectedVideo(video),
+    onViewSummary: (video) => handleViewSummary(video)
+  };
+
+  const handleViewSummary = async (video) => {
+    setViewingSummaryVideo(video);
+
+    // If summary already exists, do nothing
+    if (videoStates[video.id]?.summary) return;
+
+    // Generate Summary
+    setGeneratingSummaryId(video.id);
+    try {
+      // 1. Fetch Transcript
+      const response = await fetch(`/.netlify/functions/get-transcript?videoId=${video.id}`);
+      if (!response.ok) throw new Error('Failed to fetch transcript');
+      const { transcript } = await response.json();
+      
+      if (!transcript) throw new Error('No transcript available');
+
+      // 2. Generate Summary
+      const aiSummary = await generateSummaryService(transcript, aiApiKey);
+
+      // 3. Update State & DB
+      updateVideoState(video.id, { summary: aiSummary });
+
+    } catch (err) {
+      console.error("Error generating summary from listing:", err);
+      // Optionally show error in modal or toast
+      // For now, we might want to close the modal if it failed, or show error state in modal
+      // But SummaryModal currently only shows loading or content.
+      // Let's just log it for now.
+    } finally {
+      setGeneratingSummaryId(null);
+    }
   };
 
   return (
@@ -280,6 +324,8 @@ function App() {
           videos={pastVideos} 
           emptyMessage="No recent videos"
           loading={loading}
+          showBin={false}
+          showSaved={true}
           {...commonProps}
         />
       </div>
@@ -291,6 +337,8 @@ function App() {
           videos={todayVideos} 
           emptyMessage="No videos today"
           loading={loading}
+          showBin={true}
+          showSaved={false}
           {...commonProps}
         />
       </div>
@@ -324,6 +372,14 @@ function App() {
           onToggleSeen={toggleSeen}
           onToggleSaved={toggleSaved}
           onDelete={deleteVideo}
+        />
+      )}
+      {viewingSummaryVideo && (
+        <SummaryModal
+          video={viewingSummaryVideo}
+          summary={videoStates[viewingSummaryVideo.id]?.summary}
+          loading={generatingSummaryId === viewingSummaryVideo.id}
+          onClose={() => setViewingSummaryVideo(null)}
         />
       )}
     </div>

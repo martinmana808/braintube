@@ -1,0 +1,4 @@
+- prices? grok api? youtube api?
+- system settings, moverlo a floating window. 
+- categories y channels es la tercer columna, y se filtra desde ahi por categories, porque ya desde ahi se filtra por channels. se sacan los filtros de las columnas 1 y 2
+- opciones de copy clipboard en los summary, share (hace un share de ese modal solo, o sea, de un url publico de esa vista de modal. No puede verse nada de mi BRAINTUBE en el share). 
