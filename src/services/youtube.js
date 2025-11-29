@@ -139,3 +139,48 @@ export const fetchVideos = async (apiKey, playlistId) => {
     };
   });
 };
+
+export const fetchVideoDetails = async (apiKey, videoIdOrUrl) => {
+  let videoId = videoIdOrUrl;
+  
+  // Extract ID from URL if needed
+  if (videoIdOrUrl.includes('youtube.com') || videoIdOrUrl.includes('youtu.be')) {
+    try {
+      const url = new URL(videoIdOrUrl.startsWith('http') ? videoIdOrUrl : `https://${videoIdOrUrl}`);
+      if (url.hostname.includes('youtu.be')) {
+        videoId = url.pathname.slice(1);
+      } else {
+        videoId = url.searchParams.get('v');
+      }
+    } catch (e) {
+      console.error("Invalid URL:", e);
+      throw new Error("Invalid video URL");
+    }
+  }
+
+  if (!videoId) throw new Error("Could not extract video ID");
+
+  const response = await fetch(
+    `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${apiKey}`
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch video details');
+  }
+
+  const data = await response.json();
+  if (!data.items || data.items.length === 0) {
+    throw new Error('Video not found');
+  }
+
+  const item = data.items[0];
+  return {
+    id: item.id,
+    title: item.snippet.title,
+    thumbnail: item.snippet.thumbnails.medium?.url || item.snippet.thumbnails.default?.url,
+    channelTitle: item.snippet.channelTitle,
+    publishedAt: item.snippet.publishedAt,
+    channelId: item.snippet.channelId,
+    duration: item.contentDetails.duration,
+  };
+};

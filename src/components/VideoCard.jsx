@@ -75,9 +75,9 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
               <button 
                 onClick={(e) => handleAction(e, onToggleSeen)}
                 className="p-1.5 rounded hover:bg-gray-800 transition-colors text-gray-500 hover:text-gray-300"
-                title={seen ? "Mark as Unseen" : "Mark as Seen"}
+                title={seen ? "Change to Unwatched" : "Change to Watched"}
               >
-                {seen ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {seen ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               </button>
               <button 
                 onClick={(e) => { e.stopPropagation(); onToggleSaved(video.id); }}

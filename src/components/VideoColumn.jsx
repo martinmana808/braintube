@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import VideoCard from './VideoCard';
 import { Search, ChevronDown, Loader } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, onToggleSaved, onDelete, categories = [], channels = [], onVideoClick, loading, onViewSummary, showBin = true, showSaved = false }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -198,16 +199,31 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
             </button>
 
             {!isSavedCollapsed && (
-              <div className="space-y-4">
-                {savedVideos.map((video) => (
-                  <VideoCard 
-                    key={video.id} 
-                    video={video} 
-                    state={videoStates?.[video.id] || {}}
-                    {...videoCardProps}
-                  />
-                ))}
-              </div>
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="space-y-4 overflow-hidden"
+              >
+                <AnimatePresence mode="popLayout">
+                  {savedVideos.map((video) => (
+                    <motion.div
+                      key={video.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <VideoCard 
+                        video={video} 
+                        state={videoStates?.[video.id] || {}}
+                        {...videoCardProps}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
           </div>
         )}
@@ -229,21 +245,40 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
           </button>
 
           {!isNewCollapsed && (
-            <div className="space-y-4">
-              {activeVideos.map((video) => (
-                <VideoCard 
-                  key={video.id} 
-                  video={video} 
-                  state={videoStates?.[video.id] || {}}
-                  {...videoCardProps}
-                />
-              ))}
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="space-y-4 overflow-hidden"
+            >
+              <AnimatePresence mode="popLayout">
+                {activeVideos.map((video) => (
+                  <motion.div
+                    key={video.id}
+                    layout
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <VideoCard 
+                      video={video} 
+                      state={videoStates?.[video.id] || {}}
+                      {...videoCardProps}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
               {activeVideos.length === 0 && filteredVideos.length > 0 && (
-                <div className="text-center text-gray-600 py-8 font-mono text-sm italic">
+                <motion.div 
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }}
+                  className="text-center text-gray-600 py-8 font-mono text-sm italic"
+                >
                   All videos watched
-                </div>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
           )}
         </div>
 
@@ -265,16 +300,31 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
             </button>
             
             {!isSeenCollapsed && (
-              <div className="space-y-4">
-                {seenVideos.map((video) => (
-                  <VideoCard 
-                    key={video.id} 
-                    video={video} 
-                    state={videoStates?.[video.id] || {}}
-                    {...videoCardProps}
-                  />
-                ))}
-              </div>
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="space-y-4 overflow-hidden"
+              >
+                <AnimatePresence mode="popLayout">
+                  {seenVideos.map((video) => (
+                    <motion.div
+                      key={video.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <VideoCard 
+                        video={video} 
+                        state={videoStates?.[video.id] || {}}
+                        {...videoCardProps}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
           </div>
         )}
@@ -297,16 +347,31 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
             </button>
 
             {!isDeletedCollapsed && (
-              <div className="space-y-4">
-                {deletedVideos.map((video) => (
-                  <VideoCard 
-                    key={video.id} 
-                    video={video} 
-                    state={videoStates?.[video.id] || {}}
-                    {...videoCardProps}
-                  />
-                ))}
-              </div>
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="space-y-4 overflow-hidden"
+              >
+                <AnimatePresence mode="popLayout">
+                  {deletedVideos.map((video) => (
+                    <motion.div
+                      key={video.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <VideoCard 
+                        video={video} 
+                        state={videoStates?.[video.id] || {}}
+                        {...videoCardProps}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
           </div>
         )}

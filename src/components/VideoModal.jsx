@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import YouTube from 'react-youtube';
 import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, MessageSquare, Send, Tag } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -144,8 +145,21 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
 */
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden w-full max-w-6xl h-[80vh] flex shadow-2xl relative" onClick={e => e.stopPropagation()}>
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4" 
+      onClick={onClose}
+    >
+      <motion.div 
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ type: "spring", duration: 0.3, bounce: 0 }}
+        className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden w-full max-w-6xl h-[80vh] flex shadow-2xl relative" 
+        onClick={e => e.stopPropagation()}
+      >
         
         {/* Video Player Section */}
         <div className="w-2/3 h-full bg-black flex items-center justify-center relative">
@@ -203,10 +217,10 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
                <button 
                  onClick={() => onToggleSeen(video.id)}
                  className={`flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors ${seen ? 'bg-gray-800 text-gray-400' : 'bg-gray-800 text-gray-200 hover:bg-gray-700'}`}
-                 title={seen ? "Mark as Unseen" : "Mark as Seen"}
-               >
-                 {seen ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                 <span className="text-xs font-bold">{seen ? 'SEEN' : 'MARK SEEN'}</span>
+                 title={seen ? "Change to unwatched" : "Change to watched"}
+                 >
+                 {seen ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                 <span className="text-xs font-bold">{seen ? 'WATCHED' : 'UNWATCHED'}</span>
                </button>
                <button 
                  onClick={() => onToggleSaved(video.id)}
@@ -405,8 +419,8 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
             )}
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

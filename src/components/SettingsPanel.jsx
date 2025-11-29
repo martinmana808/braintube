@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Trash2, Plus, Key, Eye, EyeOff, FolderPlus, Folder, ChevronDown } from 'lucide-react';
 
 const SettingsPanel = ({ 
   apiKey, setApiKey, 
   aiApiKey, setAiApiKey,
   channels, onAddChannel, onRemoveChannel, onToggleSolo, onClearSolo, soloChannelIds,
-  categories, onAddCategory, onDeleteCategory, updateChannelCategory
+  categories, onAddCategory, onDeleteCategory, updateChannelCategory, onAddVideoByLink
 }) => {
   const [newChannelId, setNewChannelId] = useState('');
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddingChannel, setIsAddingChannel] = useState(false);
+  const videoInputRef = useRef(null);
 
   const handleAddChannel = async (e) => {
     e.preventDefault();
@@ -101,42 +103,51 @@ const SettingsPanel = ({
 
   const renderChannelList = (channelList) => (
     <div className="space-y-2">
-      {channelList.map((channel) => (
-        <div key={channel.id} className="flex items-center justify-between bg-gray-950 p-2 rounded border border-gray-800 group hover:border-gray-700">
-          <div className="flex items-center gap-3 overflow-hidden flex-1">
-            <img src={channel.thumbnail} alt={channel.name} className="w-6 h-6 rounded-full" />
-            <div className="flex-1 min-w-0">
-              <div className={`text-sm font-mono truncate ${soloChannelIds.includes(channel.id) ? 'text-gray-300' : 'text-gray-500'}`}>
-                {channel.name}
+      <AnimatePresence mode="popLayout">
+        {channelList.map((channel) => (
+          <motion.div 
+            key={channel.id} 
+            layout
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="flex items-center justify-between bg-gray-950 p-2 rounded border border-gray-800 group hover:border-gray-700"
+          >
+            <div className="flex items-center gap-3 overflow-hidden flex-1">
+              <img src={channel.thumbnail} alt={channel.name} className="w-6 h-6 rounded-full" />
+              <div className="flex-1 min-w-0">
+                <div className={`text-sm font-mono truncate ${soloChannelIds.includes(channel.id) ? 'text-gray-300' : 'text-gray-500'}`}>
+                  {channel.name}
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <CategoryPillSelector 
-              channel={channel} 
-              categories={categories} 
-              onSelect={updateChannelCategory} 
-            />
-            <button
-              onClick={() => onToggleSolo(channel.id)}
-              className={`p-1 rounded hover:bg-gray-800 transition-colors ${
-                soloChannelIds.includes(channel.id) ? 'text-green-500' : 'text-gray-600 hover:text-gray-400'
-              }`}
-              title={soloChannelIds.includes(channel.id) ? "Un-solo" : "Solo this channel"}
-            >
-              {soloChannelIds.includes(channel.id) ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
-            <button
-              onClick={() => onRemoveChannel(channel.id)}
-              className="p-1 text-gray-600 hover:text-red-400 rounded hover:bg-gray-800 transition-colors"
-              title="Remove channel"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      ))}
+            
+            <div className="flex items-center gap-2">
+              <CategoryPillSelector 
+                channel={channel} 
+                categories={categories} 
+                onSelect={updateChannelCategory} 
+              />
+              <button
+                onClick={() => onToggleSolo(channel.id)}
+                className={`p-1 rounded hover:bg-gray-800 transition-colors ${
+                  soloChannelIds.includes(channel.id) ? 'text-green-500' : 'text-gray-600 hover:text-gray-400'
+                }`}
+                title={soloChannelIds.includes(channel.id) ? "Un-solo" : "Solo this channel"}
+              >
+                {soloChannelIds.includes(channel.id) ? <Eye className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+              <button
+                onClick={() => onRemoveChannel(channel.id)}
+                className="p-1 text-gray-600 hover:text-red-400 rounded hover:bg-gray-800 transition-colors"
+                title="Remove channel"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 
@@ -216,6 +227,37 @@ const SettingsPanel = ({
           </button>
         </form>
         <p className="text-[10px] text-gray-600 mt-1">Enter Channel ID, Handle (@name), or URL</p>
+      </div>
+
+      <div className="mb-6">
+        <label className="block text-xs font-mono text-gray-500 mb-2 uppercase">Add Video by Link</label>
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          const url = e.target.elements.videoUrl.value;
+          if (url.trim()) {
+            onAddVideoByLink(url, () => {
+              // Callback for "Add another video" - focus input
+              setTimeout(() => videoInputRef.current?.focus(), 100);
+            });
+            e.target.elements.videoUrl.value = '';
+          }
+        }} className="flex gap-2">
+          <input
+            ref={videoInputRef}
+            name="videoUrl"
+            type="text"
+            className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-green-500 outline-none px-3 py-2 font-mono"
+            placeholder="YouTube Video URL"
+          />
+          <button
+            type="submit"
+            disabled={!apiKey}
+            className="bg-green-600 hover:bg-green-700 text-black font-bold p-2 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <Plus className="h-5 w-5" />
+          </button>
+        </form>
+        <p className="text-[10px] text-gray-600 mt-1">Paste a YouTube video link to save it directly.</p>
       </div>
 
       <div className="mb-6">
@@ -307,13 +349,22 @@ const SettingsPanel = ({
                       <Trash2 className="h-3 w-3" />
                     </button>
                   </div>
-                  {!isCollapsed && (
-                    groupedChannels[cat.id]?.length > 0 ? (
-                      renderChannelList(groupedChannels[cat.id])
-                    ) : (
-                      <div className="text-gray-700 text-xs italic pl-5">Empty category</div>
-                    )
-                  )}
+                  <AnimatePresence>
+                    {!isCollapsed && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        {groupedChannels[cat.id]?.length > 0 ? (
+                          renderChannelList(groupedChannels[cat.id])
+                        ) : (
+                          <div className="text-gray-700 text-xs italic pl-5">Empty category</div>
+                        )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               );
             })}
@@ -331,13 +382,22 @@ const SettingsPanel = ({
                 Uncategorized
                 <span className="text-gray-600">[{groupedChannels.uncategorized.length}]</span>
               </button>
-              {!collapsedCategories.has('uncategorized') && (
-                groupedChannels.uncategorized.length > 0 ? (
-                  renderChannelList(groupedChannels.uncategorized)
-                ) : (
-                  <div className="text-gray-700 text-xs italic pl-5">No uncategorized channels</div>
-                )
-              )}
+              <AnimatePresence>
+                {!collapsedCategories.has('uncategorized') && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden"
+                  >
+                    {groupedChannels.uncategorized.length > 0 ? (
+                      renderChannelList(groupedChannels.uncategorized)
+                    ) : (
+                      <div className="text-gray-700 text-xs italic pl-5">No uncategorized channels</div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         )}

@@ -2,11 +2,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { isToday, isWithinInterval, subDays, parseISO } from 'date-fns';
 import VideoColumn from './components/VideoColumn';
 import SettingsPanel from './components/SettingsPanel';
-import { fetchChannelDetails, fetchVideos } from './services/youtube';
+import { fetchChannelDetails, fetchVideos, fetchVideoDetails } from './services/youtube';
 import { supabase } from './services/supabase';
 import { generateSummary as generateSummaryService } from './services/ai';
 import VideoModal from './components/VideoModal';
 import SummaryModal from './components/SummaryModal';
+
+import ConfirmationModal from './components/ConfirmationModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function App() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('yt_curator_api_key') || import.meta.env.VITE_YOUTUBE_API_KEY || '');
@@ -21,6 +24,44 @@ function App() {
 
   const [categories, setCategories] = useState([]);
   const [soloChannelIds, setSoloChannelIds] = useState([]);
+
+  // Modal State
+  const [modalConfig, setModalConfig] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'default',
+    onConfirm: null,
+    confirmText: 'Confirm',
+    cancelText: 'Cancel'
+  });
+
+  const showConfirm = ({ title, message, onConfirm, confirmText = "Confirm", cancelText = "Cancel", type = "default" }) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm,
+      confirmText,
+      cancelText,
+      type
+    });
+  };
+
+  const showAlert = (title, message) => {
+    setModalConfig({
+      isOpen: true,
+      title,
+      message,
+      onConfirm: null,
+      confirmText: "OK",
+      type: "alert"
+    });
+  };
+
+  const closeModal = () => {
+    setModalConfig(prev => ({ ...prev, isOpen: false }));
+  };
 
   // Persistence for API Keys
   useEffect(() => {
@@ -79,17 +120,6 @@ function App() {
       setLoading(true);
       console.log('App: fetchAllVideos started', { channelsCount: channels.length });
       try {
-        // If solo mode is active (any channel soloed), only fetch/show those.
-        // Actually, we should probably fetch ALL videos but filter them in the UI?
-        // No, fetching is expensive. But if we change solo mode, we don't want to refetch.
-        // Better: Fetch from ALL channels (that are not "deleted" - wait, we removed visible property usage for hiding).
-        // User said "The eye... should be... SOLO".
-        // If I use `visible` property in DB for "Archived", then I should filter by `visible` here.
-        // But for "Solo", it's a UI filter.
-        // Let's assume `visible` in DB means "Monitored/Active".
-        // So we fetch all `visible` channels.
-        // Solo logic applies to *displayed* videos.
-        
         const activeChannels = channels.filter(c => c.visible !== false); // Default to true if undefined
         const promises = activeChannels.map(channel => fetchVideos(apiKey, channel.uploads_playlist_id || channel.uploadsPlaylistId));
         const results = await Promise.all(promises);
@@ -122,7 +152,7 @@ function App() {
     try {
       const details = await fetchChannelDetails(apiKey, channelId);
       if (channels.some(c => c.id === details.id)) {
-        alert('Channel already added!');
+        showAlert('Duplicate Channel', 'This channel has already been added to your list.');
         return;
       }
 
@@ -142,7 +172,76 @@ function App() {
       setChannels(prev => [...prev, { ...newChannel, categoryId: newChannel.category_id }]); 
     } catch (error) {
       console.error("Error adding channel:", error);
-      alert(`Could not add channel: ${error.message || error.error_description || "Unknown error"}`);
+      showAlert('Error', `Could not add channel: ${error.message || error.error_description || "Unknown error"}`);
+    }
+  };
+
+  const addVideoByLink = async (url, onDuplicate) => {
+    if (!apiKey) return;
+    
+    try {
+      // 1. Fetch Video Details
+      const videoDetails = await fetchVideoDetails(apiKey, url);
+      
+      // 2. Check for Duplicate
+      if (videoStates[videoDetails.id]?.saved) {
+        showConfirm({
+          title: 'Video Already Exists',
+          message: 'This video is already in your Saved list.',
+          confirmText: 'Add another video',
+          cancelText: 'Close',
+          onConfirm: () => {
+            if (onDuplicate) onDuplicate();
+          }
+        });
+        return;
+      }
+      
+      // 3. Check if channel exists
+      const channelExists = channels.some(c => c.id === videoDetails.channelId);
+      
+      if (!channelExists) {
+        // Add Channel
+        const channelDetails = await fetchChannelDetails(apiKey, videoDetails.channelId);
+        const newChannel = {
+          id: channelDetails.id,
+          name: channelDetails.name,
+          thumbnail: channelDetails.thumbnail,
+          uploads_playlist_id: channelDetails.uploadsPlaylistId,
+          visible: true,
+          category_id: null
+        };
+
+        const { error } = await supabase.from('channels').insert([newChannel]);
+        if (error) throw error;
+        
+        setChannels(prev => [...prev, { ...newChannel, categoryId: null }]);
+      }
+
+      // 4. Save Video
+      const newVideo = {
+        ...videoDetails,
+      };
+      
+      setVideos(prev => {
+        if (prev.some(v => v.id === newVideo.id)) return prev;
+        return [...prev, newVideo].sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+      });
+
+      // 5. Mark as Saved
+      await updateVideoState(newVideo.id, { saved: true });
+      
+      showConfirm({
+        title: 'Success',
+        message: `Video "${videoDetails.title}" added and saved! ${!channelExists ? `Channel "${videoDetails.channelTitle}" was also added to your list.` : ''}`,
+        confirmText: 'Watch Now',
+        cancelText: 'OK',
+        onConfirm: () => setSelectedVideo(newVideo)
+      });
+
+    } catch (error) {
+      console.error("Error adding video by link:", error);
+      showAlert('Error', `Could not add video: ${error.message}`);
     }
   };
 
@@ -244,7 +343,29 @@ function App() {
   };
 
   const toggleSaved = (videoId) => {
-    updateVideoState(videoId, { saved: !videoStates[videoId]?.saved });
+    const isCurrentlySaved = videoStates[videoId]?.saved;
+    
+    if (isCurrentlySaved) {
+      const video = videos.find(v => v.id === videoId);
+      if (video) {
+        const publishedAt = parseISO(video.publishedAt);
+        const cutoffDate = subDays(new Date(), 7);
+        
+        // If older than 7 days (using a slightly generous buffer or exact comparison)
+        // We want to warn if it's NOT in the "recent" window, i.e., older than 7 days.
+        if (publishedAt < cutoffDate) {
+           showConfirm({
+             title: "Unsave Video",
+             message: "This video is older than 7 days. If you unsave it, it will be removed from your list permanently. Are you sure?",
+             confirmText: "Unsave",
+             type: "danger",
+             onConfirm: () => updateVideoState(videoId, { saved: !isCurrentlySaved })
+           });
+           return;
+        }
+      }
+    }
+    updateVideoState(videoId, { saved: !isCurrentlySaved });
   };
 
   const deleteVideo = (videoId) => {
@@ -360,28 +481,53 @@ function App() {
           onAddCategory={addCategory}
           onDeleteCategory={deleteCategory}
           updateChannelCategory={updateChannelCategory}
+          onAddVideoByLink={addVideoByLink}
         />
       </div>
-      {selectedVideo && (
-        <VideoModal 
-          video={selectedVideo} 
-          onClose={() => setSelectedVideo(null)} 
-          apiKey={apiKey}
-          aiApiKey={aiApiKey}
-          state={videoStates[selectedVideo.id] || {}}
-          onToggleSeen={toggleSeen}
-          onToggleSaved={toggleSaved}
-          onDelete={deleteVideo}
-        />
-      )}
-      {viewingSummaryVideo && (
-        <SummaryModal
-          video={viewingSummaryVideo}
-          summary={videoStates[viewingSummaryVideo.id]?.summary}
-          loading={generatingSummaryId === viewingSummaryVideo.id}
-          onClose={() => setViewingSummaryVideo(null)}
-        />
-      )}
+
+
+      <AnimatePresence>
+        {selectedVideo && (
+          <VideoModal 
+            key="video-modal"
+            video={selectedVideo} 
+            onClose={() => setSelectedVideo(null)} 
+            apiKey={apiKey}
+            aiApiKey={aiApiKey}
+            state={videoStates[selectedVideo.id] || {}}
+            onToggleSeen={toggleSeen}
+            onToggleSaved={toggleSaved}
+            onDelete={deleteVideo}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {viewingSummaryVideo && (
+          <SummaryModal
+            key="summary-modal"
+            video={viewingSummaryVideo}
+            summary={videoStates[viewingSummaryVideo.id]?.summary}
+            loading={generatingSummaryId === viewingSummaryVideo.id}
+            onClose={() => setViewingSummaryVideo(null)}
+            onWatch={() => {
+              setViewingSummaryVideo(null);
+              setSelectedVideo(viewingSummaryVideo);
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {modalConfig.isOpen && (
+          <ConfirmationModal 
+            key="confirmation-modal"
+            isOpen={modalConfig.isOpen}
+            onClose={closeModal}
+            {...modalConfig}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

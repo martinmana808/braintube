@@ -1,4 +1,8 @@
-- prices? grok api? youtube api?
-- system settings, moverlo a floating window. 
-- categories y channels es la tercer columna, y se filtra desde ahi por categories, porque ya desde ahi se filtra por channels. se sacan los filtros de las columnas 1 y 2
-- opciones de copy clipboard en los summary, share (hace un share de ese modal solo, o sea, de un url publico de esa vista de modal. No puede verse nada de mi BRAINTUBE en el share). 
+QUESTION - prices? grok api? youtube api? What could happen?
+TODO - system settings, should be a thing you open and close, you dont need to see it all the time, it is just 'settings', where you eventually gonna configure your BrainTube, your user, etc.
+Because we've done this, 'categories y channels' remains as the third column.
+TODO - Because we already 'solo' or filter by channels on the Categories & Channels column, then we should filter by categories here the same. Categories should be able to be 'Solo-ed' as channels do. 
+And the text input filter to search at the top of column 1 and 2, should be removed from those columns and put on top of the channels and categories. 
+TODO - You should be able to copy summary (to clipboard).
+Should be able to share (it shares only the modal, as a public url, not the whole app). 
+I think there could be as well a 'Download record' or something like that, That downloads the video entry as a .md file, title, url, summary, transcript, tags, etc.
