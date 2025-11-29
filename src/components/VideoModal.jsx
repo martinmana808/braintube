@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import YouTube from 'react-youtube';
-import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, MessageSquare, Send, Tag, Download } from 'lucide-react';
+import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, MessageSquare, Send, Tag, Download, Share2, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../services/supabase';
 import { generateSummary as generateSummaryService, chatWithVideo, generateTags } from '../services/ai';
+import LZString from 'lz-string';
 
 const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onToggleSaved, onDelete }) => {
   const { seen, saved, deleted } = state || {};
@@ -17,7 +18,9 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [loadingChat, setLoadingChat] = useState(false);
+
   const [error, setError] = useState(null);
+  const [copiedShare, setCopiedShare] = useState(false);
   const playerRef = useRef(null);
   const chatEndRef = useRef(null);
 
@@ -144,6 +147,24 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
   };
 */
 
+  const handleShare = () => {
+    const baseUrl = window.location.origin + '/share';
+    const params = new URLSearchParams();
+    params.set('id', video.id);
+    params.set('title', video.title);
+    params.set('channel', video.channelTitle);
+    
+    if (summary) {
+      const compressed = LZString.compressToEncodedURIComponent(summary);
+      params.set('s', compressed);
+    }
+
+    const shareUrl = `${baseUrl}?${params.toString()}`;
+    navigator.clipboard.writeText(shareUrl);
+    setCopiedShare(true);
+    setTimeout(() => setCopiedShare(false), 2000);
+  };
+
   const handleDownload = () => {
     const content = `# ${video.title}
 Channel: ${video.channelTitle}
@@ -265,6 +286,14 @@ ${summary || 'No summary available.'}
                 >
                   <Download className="w-4 h-4" />
                   <span className="text-xs font-bold">DOWNLOAD</span>
+                </button>
+                <button 
+                  onClick={handleShare}
+                  className="flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
+                  title="Share Public URL"
+                >
+                  {copiedShare ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
+                  <span className="text-xs font-bold">{copiedShare ? 'COPIED' : 'SHARE'}</span>
                 </button>
             </div>
 

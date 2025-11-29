@@ -2,6 +2,7 @@ import React, { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+import SharePage from './components/SharePage.jsx'
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -36,11 +37,14 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-console.log('Mounting App...');
+const path = window.location.pathname;
+const isSharePage = path.startsWith('/share');
+
+console.log('Mounting Application...');
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      {isSharePage ? <SharePage /> : <App />}
     </ErrorBoundary>
   </StrictMode>,
 )
