@@ -31,7 +31,7 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
   const timeAgo = formatDistanceToNow(new Date(video.publishedAt), { addSuffix: true }).replace('about ', '');
 
   return (
-    <div className={`flex bg-gray-900 border border-gray-800 rounded-md overflow-hidden group transition-all duration-300 ease-in-out
+    <div className={`flex bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-md overflow-hidden group transition-all duration-300 ease-in-out
       ${isMounting ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'}
       ${isExiting ? 'opacity-0 scale-95 h-0 mb-0 border-0' : 'h-20 mb-0'}
     `}>
@@ -56,32 +56,32 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
       
       {/* Info Section */}
       <div className="flex-1 p-2 flex flex-col justify-between min-w-0 cursor-pointer" onClick={() => onClick(video)}>
-        <h3 className="text-sm font-medium text-gray-200 line-clamp-2 leading-tight group-hover:text-green-400 transition-colors">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-200 line-clamp-2 leading-tight group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
           {video.title}
         </h3>
         
         <div className="flex items-center text-xs text-gray-500 font-mono truncate">
-          <span className="truncate hover:text-gray-300 transition-colors">{video.channelTitle}</span>
-          <span className="mx-2 text-gray-700">•</span>
+          <span className="truncate hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{video.channelTitle}</span>
+          <span className="mx-2 text-gray-400 dark:text-gray-700">•</span>
           <span className="flex-shrink-0">{timeAgo}</span>
         </div>
       </div>
 
       {/* Actions Section */}
-      <div className="flex items-center px-3 border-l border-gray-800 bg-gray-900/50">
+      <div className="flex items-center px-3 border-l border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900/50">
         <div className="flex gap-1">
           {!deleted && (
             <>
               <button 
                 onClick={(e) => handleAction(e, onToggleSeen)}
-                className="p-1.5 rounded hover:bg-gray-800 transition-colors text-gray-500 hover:text-gray-300"
+                className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                 title={seen ? "Change to Unwatched" : "Change to Watched"}
               >
                 {seen ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
               </button>
               <button 
                 onClick={(e) => { e.stopPropagation(); onToggleSaved(video.id); }}
-                className="p-1.5 rounded hover:bg-gray-800 transition-colors text-gray-500 hover:text-gray-300"
+                className="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
                 title={saved ? "Unsave" : "Save for Later"}
               >
                 <Heart className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
@@ -91,7 +91,7 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
                   e.stopPropagation(); 
                   onViewSummary(video);
                 }}
-                className={`p-1.5 rounded hover:bg-gray-800 transition-colors ${summary ? 'text-gray-200 hover:text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${summary ? 'text-gray-900 hover:text-gray-700 dark:text-gray-200 dark:hover:text-white' : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300'}`}
                 title={summary ? "View Summary" : "Generate Summary"}
               >
                 <Sparkles className="w-4 h-4" />
@@ -100,7 +100,7 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
           )}
           <button 
             onClick={(e) => handleAction(e, onDelete)}
-            className={`p-1.5 rounded hover:bg-gray-800 transition-colors ${deleted ? 'text-blue-500 hover:text-blue-400' : 'text-gray-600 hover:text-red-500'}`}
+            className={`p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${deleted ? 'text-blue-500 hover:text-blue-400' : 'text-gray-400 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-500'}`}
             title={deleted ? "Restore from bin" : "Put video in the bin"}
           >
             {deleted ? <RotateCcw className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}

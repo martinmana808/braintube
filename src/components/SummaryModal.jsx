@@ -46,12 +46,12 @@ ${summary || 'No summary available.'}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-        className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl relative" 
+        className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl relative" 
         onClick={e => e.stopPropagation()}
       >
         
         {/* Header */}
-        <div className="p-6 border-b border-gray-800 flex justify-between items-start">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex justify-between items-start">
           <div className="flex-1 overflow-y-auto custom-scrollbar pr-4"> {/* Added pr-4 for spacing with close button */}
             {/* Thumbnail & Watch Button */}
             <div className="relative aspect-video w-full rounded-lg overflow-hidden mb-6 group cursor-pointer" onClick={onWatch}>
@@ -70,12 +70,12 @@ ${summary || 'No summary available.'}
               </div>
             </div>
 
-            <h2 className="text-xl font-bold text-white mb-2 leading-tight">{video.title}</h2>
-            <p className="text-gray-400 text-sm mb-6">{video.channelTitle}</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">{video.title}</h2>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">{video.channelTitle}</p>
           </div>
           <button 
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-white transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
@@ -93,7 +93,7 @@ ${summary || 'No summary available.'}
                 <div className="flex gap-2">
                   <button 
                     onClick={handleCopy}
-                    className="flex items-center gap-1 px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-xs transition-colors"
+                    className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xs transition-colors"
                     title="Copy Summary"
                   >
                     {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
@@ -101,7 +101,7 @@ ${summary || 'No summary available.'}
                   </button>
                   <button 
                     onClick={handleDownload}
-                    className="flex items-center gap-1 px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white text-xs transition-colors"
+                    className="flex items-center gap-1 px-2 py-1 rounded bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-xs transition-colors"
                     title="Download Record (.md)"
                   >
                     <Download className="w-3 h-3" />
@@ -110,7 +110,7 @@ ${summary || 'No summary available.'}
                 </div>
               )}
             </div>
-            <div className="text-gray-300 leading-relaxed">
+            <div className="text-gray-800 dark:text-gray-300 leading-relaxed">
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                   <Loader className="w-8 h-8 animate-spin mb-3" />

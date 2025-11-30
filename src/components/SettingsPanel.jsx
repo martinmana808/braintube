@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus, X } from 'lucide-react';
+import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus, X, Sun, Moon } from 'lucide-react';
 
 const SettingsPanel = ({ 
   channels, onRemoveChannel, onToggleSolo, onClearSolo, soloChannelIds,
@@ -8,7 +8,8 @@ const SettingsPanel = ({
 
   searchQuery, onSearchChange,
   soloCategoryIds, onToggleCategorySolo,
-  onAddVideoByLink, onAddChannel, onAddCategory, apiKey
+  onAddVideoByLink, onAddChannel, onAddCategory, apiKey,
+  theme, toggleTheme
 }) => {
   const [viewMode, setViewMode] = useState('categories'); // 'categories' or 'all'
   const [collapsedCategories, setCollapsedCategories] = useState(new Set());
@@ -170,11 +171,20 @@ const SettingsPanel = ({
 
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 overflow-y-auto border-l border-gray-800">
-        <h2 className="text-lg font-bold text-green-500 mb-4 font-mono uppercase tracking-wider border-b border-gray-800 pb-4 p-4">
-          Explorer
-        </h2>
-      <div className="p-4">
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 overflow-y-auto border-l border-gray-200 dark:border-gray-800 transition-colors duration-200">
+        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 p-4 mb-4">
+          <h2 className="text-lg font-bold text-green-600 dark:text-green-500 font-mono uppercase tracking-wider">
+            Explorer
+          </h2>
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
+            title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+        </div>
+      <div className="p-4 pt-0">
 
         {/* Global Search */}
       <div className="mb-6 h-8">
@@ -185,7 +195,7 @@ const SettingsPanel = ({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               onClick={() => setIsSearchOpen(true)}
-              className="flex items-center gap-2 text-gray-500 hover:text-gray-300 transition-colors w-full"
+              className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors w-full"
             >
               <Search className="h-4 w-4" />
               <span className="text-xs font-mono uppercase tracking-wider">Search</span>
@@ -198,14 +208,14 @@ const SettingsPanel = ({
               className="relative"
             >
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-500" />
+                <Search className="h-4 w-4 text-gray-400 dark:text-gray-500" />
               </div>
               <input
                 autoFocus
                 type="text"
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="block w-full pl-10 pr-8 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none py-1.5 font-mono"
+                className="block w-full pl-10 pr-8 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded text-gray-900 dark:text-gray-300 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none py-1.5 font-mono transition-colors"
                 placeholder="Search..."
                 onBlur={() => {
                   if (!searchQuery) setIsSearchOpen(false);
@@ -216,7 +226,7 @@ const SettingsPanel = ({
                   onSearchChange('');
                   setIsSearchOpen(false);
                 }}
-                className="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-500 hover:text-gray-300"
+                className="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -226,14 +236,14 @@ const SettingsPanel = ({
       </div>
 
         {/* Add Content Section */}
-        <div className="mb-6 border-b border-gray-800">
+        <div className="mb-6 border-b border-gray-200 dark:border-gray-800">
           <div className="flex gap-2">
             <button
               onClick={() => setActiveAddMode(activeAddMode === 'video' ? null : 'video')}
               className={`flex-1 flex flex-col items-center justify-center p-2 rounded border transition-colors ${
                 activeAddMode === 'video' 
-                  ? 'bg-blue-900/30 border-blue-500 text-blue-400' 
-                  : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-600 dark:text-blue-400' 
+                  : 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-gray-400 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
               title="Add Video"
             >
@@ -244,8 +254,8 @@ const SettingsPanel = ({
               onClick={() => setActiveAddMode(activeAddMode === 'channel' ? null : 'channel')}
               className={`flex-1 flex flex-col items-center justify-center p-2 rounded border transition-colors ${
                 activeAddMode === 'channel' 
-                  ? 'bg-blue-900/30 border-blue-500 text-blue-400' 
-                  : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-600 dark:text-blue-400' 
+                  : 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-gray-400 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
               title="Add Channel"
             >
@@ -256,8 +266,8 @@ const SettingsPanel = ({
               onClick={() => setActiveAddMode(activeAddMode === 'category' ? null : 'category')}
               className={`flex-1 flex flex-col items-center justify-center p-2 rounded border transition-colors ${
                 activeAddMode === 'category' 
-                  ? 'bg-blue-900/30 border-blue-500 text-blue-400' 
-                  : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-500 text-blue-600 dark:text-blue-400' 
+                  : 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-gray-400 dark:hover:border-gray-600 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
               title="Add Category"
             >
@@ -284,12 +294,12 @@ const SettingsPanel = ({
                     });
                     e.target.elements.videoUrl.value = '';
                   }
-                }} className="flex gap-2">
+                }} className="flex gap-2 mb-4">
                   <input
                     autoFocus
                     name="videoUrl"
                     type="text"
-                    className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
+                    className="flex-1 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded text-gray-900 dark:text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono transition-colors"
                     placeholder="Paste YouTube URL..."
                   />
                   <button
@@ -311,13 +321,13 @@ const SettingsPanel = ({
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <form onSubmit={handleAddChannel} className="flex gap-2">
+                <form onSubmit={handleAddChannel} className="flex gap-2 mb-4">
                   <input
                     autoFocus
                     type="text"
                     value={newChannelId}
                     onChange={(e) => setNewChannelId(e.target.value)}
-                    className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
+                    className="flex-1 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded text-gray-900 dark:text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono transition-colors"
                     placeholder="Channel ID or Handle..."
                   />
                   <button
@@ -339,13 +349,13 @@ const SettingsPanel = ({
                 exit={{ height: 0, opacity: 0 }}
                 className="overflow-hidden"
               >
-                <form onSubmit={handleAddCategory} className="flex gap-2">
+                <form onSubmit={handleAddCategory} className="flex gap-2 mb-4">
                   <input
                     autoFocus
                     type="text"
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
-                    className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
+                    className="flex-1 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded text-gray-900 dark:text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono transition-colors"
                     placeholder="New Category Name..."
                   />
                   <button

@@ -16,6 +16,7 @@ import { Settings } from 'lucide-react';
 function App() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('yt_curator_api_key') || import.meta.env.VITE_YOUTUBE_API_KEY || '');
   const [aiApiKey, setAiApiKey] = useState(() => localStorage.getItem('yt_curator_ai_api_key') || '');
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
   const [channels, setChannels] = useState([]);
   const [videoStates, setVideoStates] = useState({});
   const [videos, setVideos] = useState([]);
@@ -76,6 +77,21 @@ function App() {
   useEffect(() => {
     localStorage.setItem('yt_curator_ai_api_key', aiApiKey);
   }, [aiApiKey]);
+
+  // Theme Persistence
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
 
   // Supabase Data Fetching
   useEffect(() => {
@@ -483,7 +499,7 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-black text-gray-300 font-sans">
+    <div className="flex h-screen w-full overflow-hidden bg-white dark:bg-black text-gray-900 dark:text-gray-300 font-sans transition-colors duration-200">
       {/* Left Column: Past 7 Days */}
       <div className="w-1/3 h-full">
         <VideoColumn 
@@ -534,6 +550,8 @@ function App() {
           onSearchChange={setSearchQuery}
           soloCategoryIds={soloCategoryIds}
           onToggleCategorySolo={toggleCategorySolo}
+          theme={theme}
+          toggleTheme={toggleTheme}
         />
       </div>
 

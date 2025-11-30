@@ -222,7 +222,7 @@ This was created and copied in BrainTube`;
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-        className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden w-full max-w-6xl h-[80vh] flex shadow-2xl relative" 
+        className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden w-full max-w-6xl h-[80vh] flex shadow-2xl relative" 
         onClick={e => e.stopPropagation()}
       >
         
@@ -265,17 +265,17 @@ This was created and copied in BrainTube`;
         </div>
 
         {/* Summary Section */}
-        <div className="w-1/3 h-full border-l border-gray-800 flex flex-col bg-gray-900 relative">
+        <div className="w-1/3 h-full border-l border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-gray-900 relative">
           <button 
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-white transition-colors"
+            className="absolute top-4 right-4 z-10 p-2 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
 
-          <div className="p-6 border-b border-gray-800 pr-12"> {/* Added pr-12 for close button space */}
-            <h2 className="text-xl font-bold text-gray-100 line-clamp-2 mb-2">{video.title}</h2>
-            <p className="text-sm text-gray-500 font-mono mb-4">{video.channelTitle}</p>
+          <div className="p-6 border-b border-gray-200 dark:border-gray-800 pr-12"> {/* Added pr-12 for close button space */}
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 line-clamp-2 mb-2">{video.title}</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-mono mb-4">{video.channelTitle}</p>
             
             {/* Action Buttons */}
               <div className="flex gap-2 mb-6">
@@ -283,8 +283,8 @@ This was created and copied in BrainTube`;
                   onClick={() => onToggleSeen(video.id)}
                   className={`flex-1 flex items-center justify-center p-2 rounded transition-colors ${
                     seen 
-                      ? 'bg-green-900/30 text-green-500 border border-green-500/50' 
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                      ? 'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-500 border border-green-500/50' 
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
                   title={seen ? "Mark as Unwatched" : "Mark as Watched"}
                 >
@@ -294,8 +294,8 @@ This was created and copied in BrainTube`;
                   onClick={() => onToggleSaved(video.id)}
                   className={`flex-1 flex items-center justify-center p-2 rounded transition-colors ${
                     saved 
-                      ? 'bg-purple-900/30 text-purple-500 border border-purple-500/50' 
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                      ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-500 border border-purple-500/50' 
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
                   title={saved ? "Unsave Video" : "Save Video"}
                 >
@@ -305,8 +305,8 @@ This was created and copied in BrainTube`;
                   onClick={() => onDelete(video.id)}
                   className={`flex-1 flex items-center justify-center p-2 rounded transition-colors ${
                     deleted 
-                      ? 'bg-red-900/30 text-red-500 border border-red-500/50' 
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                      ? 'bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-500 border border-red-500/50' 
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
                   title={deleted ? "Restore from Bin" : "Move to Bin"}
                 >
@@ -314,21 +314,21 @@ This was created and copied in BrainTube`;
                </button>
                 <button 
                   onClick={handleDownload}
-                  className="flex-1 flex items-center justify-center p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
+                  className="flex-1 flex items-center justify-center p-2 rounded transition-colors bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"
                   title="Download Record (.md)"
                 >
                   <Download className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={handleCopyRecord}
-                  className="flex-1 flex items-center justify-center p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
+                  className="flex-1 flex items-center justify-center p-2 rounded transition-colors bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"
                   title="Copy Record to Clipboard"
                 >
                   {copiedRecord ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                 </button>
                 <button 
                   onClick={handleShare}
-                  className="flex-1 flex items-center justify-center p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
+                  className="flex-1 flex items-center justify-center p-2 rounded transition-colors bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700"
                   title="Share Public URL"
                 >
                   {copiedShare ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
@@ -336,29 +336,29 @@ This was created and copied in BrainTube`;
               </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-gray-800">
+            <div className="flex border-b border-gray-200 dark:border-gray-800">
               <button
                 onClick={() => setActiveTab('summary')}
-                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'summary' ? 'text-green-400' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'summary' ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
               >
                 <div className="flex items-center justify-center gap-2">
                   <Sparkles className="w-4 h-4" />
                   SUMMARY
                 </div>
                 {activeTab === 'summary' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-400" />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-600 dark:bg-green-400" />
                 )}
               </button>
               <button
                 onClick={() => setActiveTab('chat')}
-                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'chat' ? 'text-blue-400' : 'text-gray-500 hover:text-gray-300'}`}
+                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'chat' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
               >
                 <div className="flex items-center justify-center gap-2">
                   <MessageSquare className="w-4 h-4" />
                   CHAT
                 </div>
                 {activeTab === 'chat' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400" />
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400" />
                 )}
               </button>
               {/* 
@@ -397,17 +397,17 @@ This was created and copied in BrainTube`;
                   )}
                 </div>
                 {summary ? (
-                  <div className="prose prose-invert prose-sm max-w-none">
-                    <div className="text-gray-300 leading-relaxed">
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+                    <div className="text-gray-800 dark:text-gray-300 leading-relaxed">
                       <ReactMarkdown>{summary}</ReactMarkdown>
                     </div>
                   </div>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-center p-4 mt-10">
-                    <div className="bg-gray-900 p-4 rounded-full mb-4">
+                    <div className="bg-gray-100 dark:bg-gray-900 p-4 rounded-full mb-4">
                       <Sparkles className="w-8 h-8 text-green-500" />
                     </div>
-                    <h3 className="text-gray-200 font-bold mb-2">No Summary Yet</h3>
+                    <h3 className="text-gray-900 dark:text-gray-200 font-bold mb-2">No Summary Yet</h3>
                     <p className="text-gray-500 text-sm mb-6 max-w-xs">
                       Generate an AI summary to get a quick overview of this video's content.
                     </p>
@@ -506,20 +506,20 @@ This was created and copied in BrainTube`;
                   <div ref={chatEndRef} />
                 </div>
                 
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-800 bg-gray-900">
+                <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
                   <div className="relative">
                     <input
                       type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       placeholder="Ask a question..."
-                      className="w-full bg-gray-800 text-white rounded-lg pl-4 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      className="w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg pl-4 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-colors"
                       disabled={loadingChat}
                     />
                     <button 
                       type="submit"
                       disabled={!chatInput.trim() || loadingChat}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-blue-400 hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {loadingChat ? <Loader className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     </button>

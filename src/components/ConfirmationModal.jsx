@@ -30,7 +30,7 @@ const ConfirmationModal = ({
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-        className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden w-full max-w-md shadow-2xl" 
+        className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden w-full max-w-md shadow-2xl" 
         onClick={e => e.stopPropagation()}
       >
         <div className="p-6">
@@ -38,17 +38,17 @@ const ConfirmationModal = ({
             <div className={`p-3 rounded-full shrink-0 ${
               isDanger ? 'bg-red-500/10 text-red-500' : 
               isAlert ? 'bg-blue-500/10 text-blue-500' : 
-              'bg-gray-700/50 text-gray-400'
+              'bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400'
             }`}>
               {isDanger ? <AlertTriangle className="w-6 h-6" /> : 
                isAlert ? <Info className="w-6 h-6" /> : 
                <CheckCircle className="w-6 h-6" />}
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">{message}</p>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{title}</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{message}</p>
             </div>
-            <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors">
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -57,7 +57,7 @@ const ConfirmationModal = ({
             {!isAlert && (
               <button
                 onClick={onClose}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               >
                 {cancelText}
               </button>

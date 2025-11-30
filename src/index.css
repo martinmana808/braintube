@@ -13,8 +13,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #050505;
-  color: #e5e7eb;
+  @apply bg-gray-50 text-gray-900 dark:bg-[#050505] dark:text-gray-200 transition-colors duration-200;
 }
 
 /* Custom Scrollbar */
