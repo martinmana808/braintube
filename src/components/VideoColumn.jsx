@@ -4,40 +4,8 @@ import { Search, ChevronDown, Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, onToggleSaved, onDelete, categories = [], channels = [], onVideoClick, loading, onViewSummary, showBin = true, showSaved = false, searchQuery = '' }) => {
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
-
-  // Create a map for O(1) channel -> category lookup
-  const channelCategoryMap = useMemo(() => {
-    return channels.reduce((acc, channel) => {
-      acc[channel.id] = channel.categoryId;
-      return acc;
-    }, {});
-  }, [channels]);
-
-  const filteredVideos = videos.filter(v => {
-    // 1. Category Filter (Local)
-    if (selectedCategoryIds.length > 0) {
-      // We need to find the channel ID for this video. 
-      // The video object from YouTube API usually has snippet.channelId.
-      // Our flattened video object has `channelId`.
-      const categoryId = channelCategoryMap[v.channelId];
-      if (!selectedCategoryIds.includes(categoryId)) return false;
-    }
-
-    return true;
-  });
-
-  const toggleCategory = (categoryId) => {
-    setSelectedCategoryIds(prev => {
-      if (prev.includes(categoryId)) {
-        return prev.filter(id => id !== categoryId);
-      } else {
-        return [...prev, categoryId];
-      }
-    });
-  };
-
-  const clearCategories = () => setSelectedCategoryIds([]);
+  // Filtered videos are just the passed videos prop, as filtering is handled by parent or global state now
+  const filteredVideos = videos;
 
   const deletedVideos = filteredVideos.filter(v => videoStates?.[v.id]?.deleted);
   
@@ -126,34 +94,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
         </h2>
         
         
-        {/* Category Pills */}
-        {categories.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={clearCategories}
-              className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
-                selectedCategoryIds.length === 0 
-                  ? 'bg-green-900/30 border-green-500 text-green-400' 
-                  : 'bg-gray-900 border-gray-800 text-gray-500 hover:border-gray-600'
-              }`}
-            >
-              All
-            </button>
-            {categories.map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => toggleCategory(cat.id)}
-                className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
-                  selectedCategoryIds.includes(cat.id)
-                    ? 'bg-green-900/30 border-green-500 text-green-400'
-                    : 'bg-gray-900 border-gray-800 text-gray-500 hover:border-gray-600'
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-        )}
+
       </div>
       
       <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">

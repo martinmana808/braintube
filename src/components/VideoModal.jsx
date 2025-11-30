@@ -167,6 +167,11 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
     setTimeout(() => setCopiedShare(false), 2000);
   };
 
+  const handleCopySummary = () => {
+    if (!summary) return;
+    navigator.clipboard.writeText(summary);
+  };
+
   const handleDownload = () => {
     const content = `# ${video.title}
 Channel: ${video.channelTitle}
@@ -273,56 +278,62 @@ This was created and copied in BrainTube`;
             <p className="text-sm text-gray-500 font-mono mb-4">{video.channelTitle}</p>
             
             {/* Action Buttons */}
-            <div className="flex gap-2 mb-6">
-               <button 
-                 onClick={() => onToggleSeen(video.id)}
-                 className={`flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors ${seen ? 'bg-gray-800 text-gray-400' : 'bg-gray-800 text-gray-200 hover:bg-gray-700'}`}
-                 title={seen ? "Change to unwatched" : "Change to watched"}
-                 >
-                 {seen ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                 <span className="text-xs font-bold">{seen ? 'WATCHED' : 'UNWATCHED'}</span>
-               </button>
-               <button 
-                 onClick={() => onToggleSaved(video.id)}
-                 className={`flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors ${saved ? 'bg-pink-900/30 text-pink-500' : 'bg-gray-800 text-gray-200 hover:bg-gray-700'}`}
-                 title={saved ? "Unsave" : "Save for Later"}
-               >
-                 <Heart className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
-                 <span className="text-xs font-bold">{saved ? 'SAVED' : 'SAVE'}</span>
-               </button>
-               <button 
-                 onClick={() => onDelete(video.id)}
-                 className={`flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors ${deleted ? 'bg-blue-900/30 text-blue-500' : 'bg-gray-800 text-gray-200 hover:bg-red-900/30 hover:text-red-500'}`}
-                 title={deleted ? "Restore from bin" : "Put video in the bin"}
-               >
+              <div className="flex gap-2 mb-6">
+                <button 
+                  onClick={() => onToggleSeen(video.id)}
+                  className={`flex-1 flex items-center justify-center p-2 rounded transition-colors ${
+                    seen 
+                      ? 'bg-green-900/30 text-green-500 border border-green-500/50' 
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                  }`}
+                  title={seen ? "Mark as Unwatched" : "Mark as Watched"}
+                >
+                  {seen ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+                <button 
+                  onClick={() => onToggleSaved(video.id)}
+                  className={`flex-1 flex items-center justify-center p-2 rounded transition-colors ${
+                    saved 
+                      ? 'bg-purple-900/30 text-purple-500 border border-purple-500/50' 
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                  }`}
+                  title={saved ? "Unsave Video" : "Save Video"}
+                >
+                  <Heart className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
+                </button>
+                <button 
+                  onClick={() => onDelete(video.id)}
+                  className={`flex-1 flex items-center justify-center p-2 rounded transition-colors ${
+                    deleted 
+                      ? 'bg-red-900/30 text-red-500 border border-red-500/50' 
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                  }`}
+                  title={deleted ? "Restore from Bin" : "Move to Bin"}
+                >
                  {deleted ? <RotateCcw className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
-                 <span className="text-xs font-bold">{deleted ? 'RESTORE' : 'BIN'}</span>
                </button>
                 <button 
                   onClick={handleDownload}
-                  className="flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
+                  className="flex-1 flex items-center justify-center p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
                   title="Download Record (.md)"
                 >
                   <Download className="w-4 h-4" />
-                  <span className="text-xs font-bold">DOWNLOAD</span>
                 </button>
                 <button 
                   onClick={handleCopyRecord}
-                  className="flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
+                  className="flex-1 flex items-center justify-center p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
                   title="Copy Record to Clipboard"
                 >
                   {copiedRecord ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-                  <span className="text-xs font-bold">{copiedRecord ? 'COPIED' : 'COPY'}</span>
                 </button>
                 <button 
                   onClick={handleShare}
-                  className="flex-1 flex items-center justify-center gap-2 p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
+                  className="flex-1 flex items-center justify-center p-2 rounded transition-colors bg-gray-800 text-gray-200 hover:bg-gray-700"
                   title="Share Public URL"
                 >
                   {copiedShare ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
-                  <span className="text-xs font-bold">{copiedShare ? 'COPIED' : 'SHARE'}</span>
                 </button>
-            </div>
+              </div>
 
             {/* Tabs */}
             <div className="flex border-b border-gray-800">
@@ -370,6 +381,21 @@ This was created and copied in BrainTube`;
           <div className="flex-1 overflow-y-auto custom-scrollbar relative">
             {activeTab === 'summary' ? (
               <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2 text-green-500">
+                    <Sparkles className="w-4 h-4" />
+                    <h3 className="font-bold uppercase tracking-wider text-sm">AI Summary</h3>
+                  </div>
+                  {summary && (
+                    <button 
+                      onClick={handleCopySummary}
+                      className="text-gray-500 hover:text-white transition-colors p-1"
+                      title="Copy Summary"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
                 {summary ? (
                   <div className="prose prose-invert prose-sm max-w-none">
                     <div className="text-gray-300 leading-relaxed">

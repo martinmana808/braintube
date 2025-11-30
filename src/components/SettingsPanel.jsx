@@ -5,14 +5,14 @@ import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus } f
 const SettingsPanel = ({ 
   channels, onRemoveChannel, onToggleSolo, onClearSolo, soloChannelIds,
   categories, onDeleteCategory, updateChannelCategory,
-  categories, onDeleteCategory, updateChannelCategory,
+
   searchQuery, onSearchChange,
   soloCategoryIds, onToggleCategorySolo,
   onAddVideoByLink, onAddChannel, onAddCategory, apiKey
 }) => {
   const [viewMode, setViewMode] = useState('categories'); // 'categories' or 'all'
   const [collapsedCategories, setCollapsedCategories] = useState(new Set());
-  const [isAddContentCollapsed, setIsAddContentCollapsed] = useState(true);
+  const [activeAddMode, setActiveAddMode] = useState(null); // 'video', 'channel', 'category', null
   
   // Form State
   const [newChannelId, setNewChannelId] = useState('');
@@ -192,96 +192,135 @@ const SettingsPanel = ({
 
       {/* Add Content Section */}
       <div className="mb-6 border-b border-gray-800 pb-4">
-        <button 
-          onClick={() => setIsAddContentCollapsed(!isAddContentCollapsed)}
-          className="flex items-center justify-between w-full text-left group mb-2"
-        >
-          <h3 className="text-xs font-bold text-blue-500 uppercase tracking-wider font-mono group-hover:text-blue-400 transition-colors">
-            Add Content
-          </h3>
-          <div className={`transition-transform duration-200 ${isAddContentCollapsed ? '-rotate-90' : 'rotate-0'}`}>
-            <ChevronDown className="h-4 w-4 text-gray-500 group-hover:text-gray-300" />
-          </div>
-        </button>
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setActiveAddMode(activeAddMode === 'video' ? null : 'video')}
+            className={`flex-1 flex flex-col items-center justify-center p-2 rounded border transition-colors ${
+              activeAddMode === 'video' 
+                ? 'bg-blue-900/30 border-blue-500 text-blue-400' 
+                : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+            }`}
+            title="Add Video"
+          >
+            <Plus className="h-4 w-4 mb-1" />
+            <span className="text-[9px] font-mono uppercase tracking-wider">Video</span>
+          </button>
+          <button
+            onClick={() => setActiveAddMode(activeAddMode === 'channel' ? null : 'channel')}
+            className={`flex-1 flex flex-col items-center justify-center p-2 rounded border transition-colors ${
+              activeAddMode === 'channel' 
+                ? 'bg-blue-900/30 border-blue-500 text-blue-400' 
+                : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+            }`}
+            title="Add Channel"
+          >
+            <Youtube className="h-4 w-4 mb-1" />
+            <span className="text-[9px] font-mono uppercase tracking-wider">Channel</span>
+          </button>
+          <button
+            onClick={() => setActiveAddMode(activeAddMode === 'category' ? null : 'category')}
+            className={`flex-1 flex flex-col items-center justify-center p-2 rounded border transition-colors ${
+              activeAddMode === 'category' 
+                ? 'bg-blue-900/30 border-blue-500 text-blue-400' 
+                : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+            }`}
+            title="Add Category"
+          >
+            <FolderPlus className="h-4 w-4 mb-1" />
+            <span className="text-[9px] font-mono uppercase tracking-wider">Category</span>
+          </button>
+        </div>
 
-        <AnimatePresence>
-          {!isAddContentCollapsed && (
+        <AnimatePresence mode="wait">
+          {activeAddMode === 'video' && (
             <motion.div
+              key="video-form"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden space-y-4"
+              className="overflow-hidden"
             >
-              {/* Add Video */}
-              <div>
-                 <form onSubmit={(e) => {
-                   e.preventDefault();
-                   const url = e.target.elements.videoUrl.value;
-                   if (url.trim()) {
-                     onAddVideoByLink(url, () => {
-                        e.target.elements.videoUrl.focus();
-                     });
-                     e.target.elements.videoUrl.value = '';
-                   }
-                 }} className="flex gap-2">
-                   <input
-                     name="videoUrl"
-                     type="text"
-                     className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
-                     placeholder="YouTube URL"
-                   />
-                   <button
-                     type="submit"
-                     disabled={!apiKey}
-                     className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                     title="Add Video"
-                   >
-                     <Plus className="h-4 w-4" />
-                   </button>
-                 </form>
-              </div>
+               <form onSubmit={(e) => {
+                 e.preventDefault();
+                 const url = e.target.elements.videoUrl.value;
+                 if (url.trim()) {
+                   onAddVideoByLink(url, () => {
+                      e.target.elements.videoUrl.focus();
+                   });
+                   e.target.elements.videoUrl.value = '';
+                 }
+               }} className="flex gap-2">
+                 <input
+                   autoFocus
+                   name="videoUrl"
+                   type="text"
+                   className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
+                   placeholder="Paste YouTube URL..."
+                 />
+                 <button
+                   type="submit"
+                   disabled={!apiKey}
+                   className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                 >
+                   <Plus className="h-4 w-4" />
+                 </button>
+               </form>
+            </motion.div>
+          )}
 
-              {/* Add Channel */}
-              <div>
-                 <form onSubmit={handleAddChannel} className="flex gap-2">
-                   <input
-                     type="text"
-                     value={newChannelId}
-                     onChange={(e) => setNewChannelId(e.target.value)}
-                     className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
-                     placeholder="Channel ID / Handle"
-                   />
-                   <button
-                     type="submit"
-                     disabled={isAddingChannel || !apiKey}
-                     className="bg-gray-800 hover:bg-gray-700 text-gray-300 p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                     title="Add Channel"
-                   >
-                     <Youtube className="h-4 w-4" />
-                   </button>
-                 </form>
-              </div>
+          {activeAddMode === 'channel' && (
+            <motion.div
+              key="channel-form"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+               <form onSubmit={handleAddChannel} className="flex gap-2">
+                 <input
+                   autoFocus
+                   type="text"
+                   value={newChannelId}
+                   onChange={(e) => setNewChannelId(e.target.value)}
+                   className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
+                   placeholder="Channel ID or Handle..."
+                 />
+                 <button
+                   type="submit"
+                   disabled={isAddingChannel || !apiKey}
+                   className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                 >
+                   <Plus className="h-4 w-4" />
+                 </button>
+               </form>
+            </motion.div>
+          )}
 
-              {/* Add Category */}
-              <div>
-                 <form onSubmit={handleAddCategory} className="flex gap-2">
-                   <input
-                     type="text"
-                     value={newCategoryName}
-                     onChange={(e) => setNewCategoryName(e.target.value)}
-                     className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
-                     placeholder="Category Name"
-                   />
-                   <button
-                     type="submit"
-                     disabled={!newCategoryName.trim()}
-                     className="bg-gray-800 hover:bg-gray-700 text-gray-300 p-1.5 rounded disabled:opacity-50 transition-colors"
-                     title="Add Category"
-                   >
-                     <FolderPlus className="h-4 w-4" />
-                   </button>
-                 </form>
-              </div>
+          {activeAddMode === 'category' && (
+            <motion.div
+              key="category-form"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+               <form onSubmit={handleAddCategory} className="flex gap-2">
+                 <input
+                   autoFocus
+                   type="text"
+                   value={newCategoryName}
+                   onChange={(e) => setNewCategoryName(e.target.value)}
+                   className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
+                   placeholder="New Category Name..."
+                 />
+                 <button
+                   type="submit"
+                   disabled={!newCategoryName.trim()}
+                   className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 transition-colors"
+                 >
+                   <Plus className="h-4 w-4" />
+                 </button>
+               </form>
             </motion.div>
           )}
         </AnimatePresence>
