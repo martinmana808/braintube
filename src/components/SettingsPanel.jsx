@@ -169,295 +169,297 @@ const SettingsPanel = ({
 
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 p-4 overflow-y-auto border-l border-gray-800">
-      <h2 className="text-lg font-bold text-green-500 mb-6 font-mono uppercase tracking-wider border-b border-gray-800 pb-2">
-        Explorer
-      </h2>
+    <div className="flex flex-col h-full bg-gray-900 overflow-y-auto border-l border-gray-800">
+        <h2 className="text-lg font-bold text-green-500 mb-4 font-mono uppercase tracking-wider border-b border-gray-800 pb-4 p-4">
+          Explorer
+        </h2>
+      <div className="p-4">
 
-      {/* Global Search */}
-      <div className="mb-6">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-500" />
+        {/* Global Search */}
+        <div className="mb-6">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-500" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="block w-full pl-10 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none py-2 font-mono"
+              placeholder="Search videos..."
+            />
           </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="block w-full pl-10 bg-gray-950 border border-gray-800 rounded text-gray-300 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none py-2 font-mono"
-            placeholder="Search videos..."
-          />
-        </div>
-      </div>
-
-      {/* Add Content Section */}
-      <div className="mb-6 border-b border-gray-800 pb-4">
-        <div className="flex gap-2 mb-4">
-          <button
-            onClick={() => setActiveAddMode(activeAddMode === 'video' ? null : 'video')}
-            className={`flex-1 flex flex-col items-center justify-center p-2 rounded border transition-colors ${
-              activeAddMode === 'video' 
-                ? 'bg-blue-900/30 border-blue-500 text-blue-400' 
-                : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
-            }`}
-            title="Add Video"
-          >
-            <Plus className="h-4 w-4 mb-1" />
-            <span className="text-[9px] font-mono uppercase tracking-wider">Video</span>
-          </button>
-          <button
-            onClick={() => setActiveAddMode(activeAddMode === 'channel' ? null : 'channel')}
-            className={`flex-1 flex flex-col items-center justify-center p-2 rounded border transition-colors ${
-              activeAddMode === 'channel' 
-                ? 'bg-blue-900/30 border-blue-500 text-blue-400' 
-                : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
-            }`}
-            title="Add Channel"
-          >
-            <Youtube className="h-4 w-4 mb-1" />
-            <span className="text-[9px] font-mono uppercase tracking-wider">Channel</span>
-          </button>
-          <button
-            onClick={() => setActiveAddMode(activeAddMode === 'category' ? null : 'category')}
-            className={`flex-1 flex flex-col items-center justify-center p-2 rounded border transition-colors ${
-              activeAddMode === 'category' 
-                ? 'bg-blue-900/30 border-blue-500 text-blue-400' 
-                : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
-            }`}
-            title="Add Category"
-          >
-            <FolderPlus className="h-4 w-4 mb-1" />
-            <span className="text-[9px] font-mono uppercase tracking-wider">Category</span>
-          </button>
         </div>
 
-        <AnimatePresence mode="wait">
-          {activeAddMode === 'video' && (
-            <motion.div
-              key="video-form"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-               <form onSubmit={(e) => {
-                 e.preventDefault();
-                 const url = e.target.elements.videoUrl.value;
-                 if (url.trim()) {
-                   onAddVideoByLink(url, () => {
-                      e.target.elements.videoUrl.focus();
-                   });
-                   e.target.elements.videoUrl.value = '';
-                 }
-               }} className="flex gap-2">
-                 <input
-                   autoFocus
-                   name="videoUrl"
-                   type="text"
-                   className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
-                   placeholder="Paste YouTube URL..."
-                 />
-                 <button
-                   type="submit"
-                   disabled={!apiKey}
-                   className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                 >
-                   <Plus className="h-4 w-4" />
-                 </button>
-               </form>
-            </motion.div>
-          )}
-
-          {activeAddMode === 'channel' && (
-            <motion.div
-              key="channel-form"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-               <form onSubmit={handleAddChannel} className="flex gap-2">
-                 <input
-                   autoFocus
-                   type="text"
-                   value={newChannelId}
-                   onChange={(e) => setNewChannelId(e.target.value)}
-                   className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
-                   placeholder="Channel ID or Handle..."
-                 />
-                 <button
-                   type="submit"
-                   disabled={isAddingChannel || !apiKey}
-                   className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                 >
-                   <Plus className="h-4 w-4" />
-                 </button>
-               </form>
-            </motion.div>
-          )}
-
-          {activeAddMode === 'category' && (
-            <motion.div
-              key="category-form"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
-            >
-               <form onSubmit={handleAddCategory} className="flex gap-2">
-                 <input
-                   autoFocus
-                   type="text"
-                   value={newCategoryName}
-                   onChange={(e) => setNewCategoryName(e.target.value)}
-                   className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
-                   placeholder="New Category Name..."
-                 />
-                 <button
-                   type="submit"
-                   disabled={!newCategoryName.trim()}
-                   className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 transition-colors"
-                 >
-                   <Plus className="h-4 w-4" />
-                 </button>
-               </form>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      <div className="flex-1">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <label className="block text-xs font-mono text-gray-500 uppercase">Monitored Channels [{channels.length}]</label>
-            {(soloChannelIds.length > 0 || soloCategoryIds.length > 0) && (
-              <button 
-                onClick={onClearSolo}
-                className="text-[10px] font-mono uppercase text-red-400 hover:text-red-300 border border-red-900/50 bg-red-900/20 px-2 py-0.5 rounded transition-colors"
-              >
-                Clear Solo ({soloChannelIds.length + soloCategoryIds.length})
-              </button>
-            )}
-          </div>
+        {/* Add Content Section */}
+        <div className="mb-6 border-b border-gray-800">
           <div className="flex gap-2">
             <button
-              onClick={() => setViewMode('categories')}
-              className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
-                viewMode === 'categories' 
-                  ? 'bg-green-900/30 border-green-500 text-green-400' 
-                  : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600'
+              onClick={() => setActiveAddMode(activeAddMode === 'video' ? null : 'video')}
+              className={`flex-1 flex flex-col items-center justify-center p-2 rounded border transition-colors ${
+                activeAddMode === 'video' 
+                  ? 'bg-blue-900/30 border-blue-500 text-blue-400' 
+                  : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
               }`}
+              title="Add Video"
             >
-              Categories
+              <Plus className="h-4 w-4 mb-1" />
+              <span className="text-[9px] font-mono uppercase tracking-wider">Video</span>
             </button>
             <button
-              onClick={() => setViewMode('all')}
-              className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
-                viewMode === 'all' 
-                  ? 'bg-green-900/30 border-green-500 text-green-400' 
-                  : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600'
+              onClick={() => setActiveAddMode(activeAddMode === 'channel' ? null : 'channel')}
+              className={`flex-1 flex flex-col items-center justify-center p-2 rounded border transition-colors ${
+                activeAddMode === 'channel' 
+                  ? 'bg-blue-900/30 border-blue-500 text-blue-400' 
+                  : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
               }`}
+              title="Add Channel"
             >
-              All
+              <Youtube className="h-4 w-4 mb-1" />
+              <span className="text-[9px] font-mono uppercase tracking-wider">Channel</span>
+            </button>
+            <button
+              onClick={() => setActiveAddMode(activeAddMode === 'category' ? null : 'category')}
+              className={`flex-1 flex flex-col items-center justify-center p-2 rounded border transition-colors ${
+                activeAddMode === 'category' 
+                  ? 'bg-blue-900/30 border-blue-500 text-blue-400' 
+                  : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600 hover:text-gray-300'
+              }`}
+              title="Add Category"
+            >
+              <FolderPlus className="h-4 w-4 mb-1" />
+              <span className="text-[9px] font-mono uppercase tracking-wider">Category</span>
             </button>
           </div>
-        </div>
-        
-        {viewMode === 'all' ? (
-          <div className="space-y-6">
-             {channels.length > 0 ? renderChannelList(channels) : (
-                <div className="text-gray-700 text-xs italic pl-5">No channels monitored</div>
-             )}
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Categories */}
-            {categories.map(cat => {
-              const isCollapsed = collapsedCategories.has(cat.id);
-              return (
-                <div key={cat.id}>
-                  <div className="flex items-center justify-between mb-2 group">
-                    <button 
-                      onClick={() => toggleCategoryCollapse(cat.id)}
-                      className="flex items-center gap-2 text-gray-400 font-mono text-xs uppercase tracking-wider hover:text-gray-200 transition-colors"
-                    >
-                      <div className={`transition-transform duration-200 ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}>
-                        <ChevronDown className="h-3 w-3" />
-                      </div>
-                      <Folder className="h-3 w-3" />
-                      {cat.name}
-                      <span className="text-gray-600">[{groupedChannels[cat.id]?.length || 0}]</span>
-                    </button>
-                    <div className="flex items-center gap-2">
-                       <button
-                        onClick={() => onToggleCategorySolo(cat.id)}
-                        className={`p-1 rounded hover:bg-gray-800 transition-colors ${
-                          soloCategoryIds.includes(cat.id) ? 'text-green-500' : 'text-gray-600 hover:text-gray-400'
-                        }`}
-                        title={soloCategoryIds.includes(cat.id) ? "Un-solo Category" : "Solo this Category"}
-                      >
-                        {soloCategoryIds.includes(cat.id) ? <Eye className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                      </button>
-                      <button 
-                        onClick={() => onDeleteCategory(cat.id)}
-                        className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
-                  </div>
-                  <AnimatePresence>
-                    {!isCollapsed && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
-                        {groupedChannels[cat.id]?.length > 0 ? (
-                          renderChannelList(groupedChannels[cat.id])
-                        ) : (
-                          <div className="text-gray-700 text-xs italic pl-5">Empty category</div>
-                        )}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
 
-            {/* Uncategorized */}
-            <div>
-              <button 
-                onClick={() => toggleCategoryCollapse('uncategorized')}
-                className="flex items-center gap-2 mb-2 text-gray-500 font-mono text-xs uppercase tracking-wider hover:text-gray-300 transition-colors"
+          <AnimatePresence mode="wait">
+            {activeAddMode === 'video' && (
+              <motion.div
+                key="video-form"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
               >
-                <div className={`transition-transform duration-200 ${collapsedCategories.has('uncategorized') ? '-rotate-90' : 'rotate-0'}`}>
-                  <ChevronDown className="h-3 w-3" />
-                </div>
-                <Folder className="h-3 w-3" />
-                Uncategorized
-                <span className="text-gray-600">[{groupedChannels.uncategorized.length}]</span>
-              </button>
-              <AnimatePresence>
-                {!collapsedCategories.has('uncategorized') && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  const url = e.target.elements.videoUrl.value;
+                  if (url.trim()) {
+                    onAddVideoByLink(url, () => {
+                        e.target.elements.videoUrl.focus();
+                    });
+                    e.target.elements.videoUrl.value = '';
+                  }
+                }} className="flex gap-2">
+                  <input
+                    autoFocus
+                    name="videoUrl"
+                    type="text"
+                    className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
+                    placeholder="Paste YouTube URL..."
+                  />
+                  <button
+                    type="submit"
+                    disabled={!apiKey}
+                    className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {groupedChannels.uncategorized.length > 0 ? (
-                      renderChannelList(groupedChannels.uncategorized)
-                    ) : (
-                      <div className="text-gray-700 text-xs italic pl-5">No uncategorized channels</div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </form>
+              </motion.div>
+            )}
+
+            {activeAddMode === 'channel' && (
+              <motion.div
+                key="channel-form"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <form onSubmit={handleAddChannel} className="flex gap-2">
+                  <input
+                    autoFocus
+                    type="text"
+                    value={newChannelId}
+                    onChange={(e) => setNewChannelId(e.target.value)}
+                    className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
+                    placeholder="Channel ID or Handle..."
+                  />
+                  <button
+                    type="submit"
+                    disabled={isAddingChannel || !apiKey}
+                    className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </form>
+              </motion.div>
+            )}
+
+            {activeAddMode === 'category' && (
+              <motion.div
+                key="category-form"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <form onSubmit={handleAddCategory} className="flex gap-2">
+                  <input
+                    autoFocus
+                    type="text"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    className="flex-1 bg-gray-950 border border-gray-800 rounded text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono"
+                    placeholder="New Category Name..."
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newCategoryName.trim()}
+                    className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 transition-colors"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </form>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div className="flex-1">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <label className="block text-xs font-mono text-gray-500 uppercase">Monitored Channels [{channels.length}]</label>
+              {(soloChannelIds.length > 0 || soloCategoryIds.length > 0) && (
+                <button 
+                  onClick={onClearSolo}
+                  className="text-[10px] font-mono uppercase text-red-400 hover:text-red-300 border border-red-900/50 bg-red-900/20 px-2 py-0.5 rounded transition-colors"
+                >
+                  Clear Solo ({soloChannelIds.length + soloCategoryIds.length})
+                </button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setViewMode('categories')}
+                className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
+                  viewMode === 'categories' 
+                    ? 'bg-gray-800' 
+                    : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600'
+                }`}
+              >
+                Categories
+              </button>
+              <button
+                onClick={() => setViewMode('all')}
+                className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
+                  viewMode === 'all' 
+                    ? 'bg-gray-800' 
+                    : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600'
+                }`}
+              >
+                All
+              </button>
             </div>
           </div>
-        )}
+          
+          {viewMode === 'all' ? (
+            <div className="space-y-6">
+              {channels.length > 0 ? renderChannelList(channels) : (
+                  <div className="text-gray-700 text-xs italic pl-5">No channels monitored</div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Categories */}
+              {categories.map(cat => {
+                const isCollapsed = collapsedCategories.has(cat.id);
+                return (
+                  <div key={cat.id}>
+                    <div className="flex items-center justify-between mb-2 group">
+                      <button 
+                        onClick={() => toggleCategoryCollapse(cat.id)}
+                        className="flex items-center gap-2 text-gray-400 font-mono text-xs uppercase tracking-wider hover:text-gray-200 transition-colors"
+                      >
+                        <div className={`transition-transform duration-200 ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}>
+                          <ChevronDown className="h-3 w-3" />
+                        </div>
+                        <Folder className="h-3 w-3" />
+                        {cat.name}
+                        <span className="text-gray-600">[{groupedChannels[cat.id]?.length || 0}]</span>
+                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => onToggleCategorySolo(cat.id)}
+                          className={`p-1 rounded hover:bg-gray-800 transition-colors ${
+                            soloCategoryIds.includes(cat.id) ? 'text-green-500' : 'text-gray-600 hover:text-gray-400'
+                          }`}
+                          title={soloCategoryIds.includes(cat.id) ? "Un-solo Category" : "Solo this Category"}
+                        >
+                          {soloCategoryIds.includes(cat.id) ? <Eye className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                        </button>
+                        <button 
+                          onClick={() => onDeleteCategory(cat.id)}
+                          className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                    <AnimatePresence>
+                      {!isCollapsed && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          {groupedChannels[cat.id]?.length > 0 ? (
+                            renderChannelList(groupedChannels[cat.id])
+                          ) : (
+                            <div className="text-gray-700 text-xs italic pl-5">Empty category</div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+
+              {/* Uncategorized */}
+              <div>
+                <button 
+                  onClick={() => toggleCategoryCollapse('uncategorized')}
+                  className="flex items-center gap-2 mb-2 text-gray-500 font-mono text-xs uppercase tracking-wider hover:text-gray-300 transition-colors"
+                >
+                  <div className={`transition-transform duration-200 ${collapsedCategories.has('uncategorized') ? '-rotate-90' : 'rotate-0'}`}>
+                    <ChevronDown className="h-3 w-3" />
+                  </div>
+                  <Folder className="h-3 w-3" />
+                  Uncategorized
+                  <span className="text-gray-600">[{groupedChannels.uncategorized.length}]</span>
+                </button>
+                <AnimatePresence>
+                  {!collapsedCategories.has('uncategorized') && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      {groupedChannels.uncategorized.length > 0 ? (
+                        renderChannelList(groupedChannels.uncategorized)
+                      ) : (
+                        <div className="text-gray-700 text-xs italic pl-5">No uncategorized channels</div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

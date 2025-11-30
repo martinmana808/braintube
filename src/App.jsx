@@ -91,7 +91,15 @@ function App() {
       // Fetch Channels
       const { data: channelsData, error: channelsError } = await supabase.from('channels').select('*');
       if (channelsError) console.error('Error fetching channels:', channelsError);
-      if (channelsData) setChannels(channelsData);
+      if (channelsData) {
+        // Map DB snake_case to frontend camelCase
+        const mappedChannels = channelsData.map(c => ({
+          ...c,
+          categoryId: c.category_id,
+          uploadsPlaylistId: c.uploads_playlist_id
+        }));
+        setChannels(mappedChannels);
+      }
 
       // Fetch Video Metadata
       const { data: videoData, error: videoMetadataError } = await supabase.from('video_metadata').select('*');

@@ -89,7 +89,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
   return (
     <div className="flex flex-col h-full bg-black border-r border-gray-800 last:border-r-0">
       <div className="mb-4 border-b border-gray-800 pb-4 p-4">
-        <h2 className="text-lg font-bold text-green-500 mb-3 font-mono uppercase tracking-wider">
+        <h2 className="text-lg font-bold text-green-500 font-mono uppercase tracking-wider">
           {title} <span className="text-gray-600 text-sm ml-2">[{filteredVideos.length - (showBin ? deletedVideos.length : 0)}]</span>
         </h2>
         
