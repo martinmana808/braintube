@@ -180,60 +180,75 @@ const SettingsPanel = ({
 
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 overflow-y-auto border-l border-gray-200 dark:border-gray-800 transition-colors duration-200">
-        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 p-4 mb-4">
-          <h2 className="text-lg font-bold text-green-600 dark:text-green-500 font-mono uppercase tracking-wider">
-            Explorer
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 transition-colors duration-200">
+      {/* Fixed App Header */}
+      <div className="flex-none p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 z-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 font-mono uppercase tracking-wider">
+            APP
           </h2>
+          
+          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 transition-colors"
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+              theme === 'dark' ? 'bg-blue-600' : 'bg-gray-200'
+            }`}
             title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
-            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            <span
+              className={`${
+                theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+              } inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200`}
+            />
+            <span className="absolute inset-0 flex items-center justify-between px-1.5 pointer-events-none">
+               <Sun className={`w-3 h-3 text-yellow-500 ${theme === 'dark' ? 'opacity-0' : 'opacity-100'} transition-opacity`} />
+               <Moon className={`w-3 h-3 text-white ${theme === 'dark' ? 'opacity-100' : 'opacity-0'} transition-opacity`} />
+            </span>
           </button>
         </div>
 
         {/* User Profile Card */}
-        <div className="px-4 mb-6">
-          <div className="w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
-            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700 flex-shrink-0">
-              {user?.user_metadata?.avatar_url ? (
-                <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                <User className="w-5 h-5 text-gray-400" />
-              )}
+        <div className="w-full flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-300 dark:border-gray-700 flex-shrink-0">
+            {user?.user_metadata?.avatar_url ? (
+              <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-5 h-5 text-gray-400" />
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
+              {user?.user_metadata?.full_name || 'User'}
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
-                {user?.user_metadata?.full_name || 'User'}
-              </div>
-              <div className="text-xs text-gray-500 truncate">
-                {user?.email}
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={onOpenSettings}
-                className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                title="Settings"
-              >
-                <Settings className="w-4 h-4" />
-              </button>
-              <button
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  navigate('/login');
-                }}
-                className="p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                title="Sign Out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+            <div className="text-[10px] text-gray-500 truncate">
+              {user?.app_metadata?.provider ? `Logged in via ${user.app_metadata.provider}` : user?.email}
             </div>
           </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onOpenSettings}
+              className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              title="Settings"
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                navigate('/login');
+              }}
+              className="p-2 text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
-      <div className="p-4 pt-0 pb-20">
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-4 pt-4 pb-20">
 
         {/* Global Search */}
       <div className="mb-6 h-8">
