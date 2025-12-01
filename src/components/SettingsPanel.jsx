@@ -82,8 +82,10 @@ const SettingsPanel = ({
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors whitespace-nowrap bg-gray-950 border-gray-800 hover:border-gray-600 ${
-            currentCategory ? 'text-gray-300' : 'text-gray-500'
+          className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors whitespace-nowrap ${
+            currentCategory 
+              ? 'bg-gray-100 dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-gray-400 dark:hover:border-gray-600' 
+              : 'bg-gray-50 dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-400 dark:text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
           }`}
         >
           {currentCategory ? currentCategory.name : 'No Category'}
@@ -95,13 +97,13 @@ const SettingsPanel = ({
               className="fixed inset-0 z-10" 
               onClick={() => setIsOpen(false)}
             />
-            <div className="absolute right-0 mt-1 w-32 bg-gray-950 border border-gray-800 rounded shadow-xl z-20 py-1 max-h-48 overflow-y-auto">
+            <div className="absolute right-0 mt-1 w-32 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded shadow-xl z-20 py-1 max-h-48 overflow-y-auto">
               <button
                 onClick={() => {
                   onSelect(null);
                   setIsOpen(false);
                 }}
-                className="w-full text-left px-3 py-1.5 text-[10px] font-mono uppercase text-gray-400 hover:bg-gray-800 hover:text-gray-200"
+                className="w-full text-left px-3 py-1.5 text-[10px] font-mono uppercase text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-200"
               >
                 No Category
               </button>
@@ -113,8 +115,8 @@ const SettingsPanel = ({
                     onSelect(channel.id, cat.id);
                     setIsOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-1.5 text-[10px] font-mono uppercase hover:bg-gray-800 hover:text-gray-200 ${
-                    channel.categoryId === cat.id ? 'text-green-400' : 'text-gray-400'
+                  className={`w-full text-left px-3 py-1.5 text-[10px] font-mono uppercase hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 ${
+                    channel.categoryId === cat.id ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
                   }`}
                 >
                   {cat.name}
@@ -137,7 +139,7 @@ const SettingsPanel = ({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="flex items-center justify-between bg-gray-950 p-2 rounded border border-gray-800 group hover:border-gray-700"
+            className="flex items-center justify-between bg-white dark:bg-gray-950 p-2 rounded border border-gray-200 dark:border-gray-800 group hover:border-gray-300 dark:hover:border-gray-700 shadow-sm"
           >
             <div className="flex items-center gap-3 overflow-hidden flex-1">
               <img src={channel.thumbnail} alt={channel.name} className="w-6 h-6 rounded-full" />
@@ -428,8 +430,8 @@ const SettingsPanel = ({
                 onClick={() => setViewMode('categories')}
                 className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
                   viewMode === 'categories' 
-                    ? 'bg-gray-950' 
-                    : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600'
+                    ? 'bg-gray-100 dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100' 
+                    : 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
                 }`}
               >
                 Categories
@@ -438,8 +440,8 @@ const SettingsPanel = ({
                 onClick={() => setViewMode('all')}
                 className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
                   viewMode === 'all' 
-                    ? 'bg-gray-950' 
-                    : 'bg-gray-950 border-gray-800 text-gray-500 hover:border-gray-600'
+                    ? 'bg-gray-100 dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100' 
+                    : 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
                 }`}
               >
                 All
