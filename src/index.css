@@ -22,14 +22,13 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #0f0f0f;
+  @apply bg-gray-50 dark:bg-[#0f0f0f];
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 3px;
+  @apply bg-gray-300 dark:bg-[#333] rounded-full;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #444;
+  @apply bg-gray-400 dark:bg-[#444];
 }

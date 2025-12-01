@@ -107,7 +107,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
                 <ChevronDown className="w-4 h-4 text-gray-500 group-hover:text-gray-900 dark:group-hover:text-gray-300" />
               </div>
               <h3 className={`text-xs uppercase tracking-wider group-hover:text-gray-900 dark:group-hover:text-gray-300 transition-colors font-mono ${
-                isSavedFlashing ? 'text-green-600 dark:text-green-500' : 'text-gray-500'
+                isSavedFlashing ? 'text-teal-600 dark:text-green-500' : 'text-gray-500'
               }`}>
                 Saved [{savedVideos.length}]
               </h3>
@@ -153,7 +153,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
               <ChevronDown className="w-4 h-4 text-gray-500 group-hover:text-gray-900 dark:group-hover:text-gray-300" />
             </div>
             <h3 className={`text-xs uppercase tracking-wider group-hover:text-gray-900 dark:group-hover:text-gray-300 transition-colors font-mono ${
-              isNewFlashing ? 'text-green-600 dark:text-green-500' : 'text-gray-500'
+              isNewFlashing ? 'text-teal-600 dark:text-green-500' : 'text-gray-500'
             }`}>
               Unwatched [{activeVideos.length}]
             </h3>
@@ -208,7 +208,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
                 <ChevronDown className="w-4 h-4 text-gray-500 group-hover:text-gray-900 dark:group-hover:text-gray-300" />
               </div>
               <h3 className={`text-xs uppercase tracking-wider group-hover:text-gray-900 dark:group-hover:text-gray-300 transition-colors font-mono ${
-                isSeenFlashing ? 'text-green-600 dark:text-green-500' : 'text-gray-500'
+                isSeenFlashing ? 'text-teal-600 dark:text-green-500' : 'text-gray-500'
               }`}>
                 Watched [{seenVideos.length}]
               </h3>
@@ -255,7 +255,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
                 <ChevronDown className="w-4 h-4 text-gray-500 group-hover:text-gray-900 dark:group-hover:text-gray-300" />
               </div>
               <h3 className={`text-xs uppercase tracking-wider group-hover:text-gray-900 dark:group-hover:text-gray-300 transition-colors font-mono ${
-                isDeletedFlashing ? 'text-green-600 dark:text-green-500' : 'text-gray-500'
+                isDeletedFlashing ? 'text-teal-600 dark:text-green-500' : 'text-gray-500'
               }`}>
                 Bin [{deletedVideos.length}]
               </h3>
@@ -293,7 +293,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
 
         {/* Empty State / Loading */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center mt-20 text-green-500">
+          <div className="flex flex-col items-center justify-center mt-20 text-teal-500 dark:text-green-500">
             <Loader className="w-8 h-8 animate-spin mb-2" />
             <span className="text-xs font-mono uppercase tracking-wider">Loading...</span>
           </div>

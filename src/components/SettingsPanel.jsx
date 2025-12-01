@@ -116,7 +116,7 @@ const SettingsPanel = ({
                     setIsOpen(false);
                   }}
                   className={`w-full text-left px-3 py-1.5 text-[10px] font-mono uppercase hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 ${
-                    channel.categoryId === cat.id ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
+                    channel.categoryId === cat.id ? 'text-teal-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
                   }`}
                 >
                   {cat.name}
@@ -159,7 +159,7 @@ const SettingsPanel = ({
               <button
                 onClick={() => onToggleSolo(channel.id)}
                 className={`p-1 rounded hover:bg-gray-800 transition-colors ${
-                  soloChannelIds.includes(channel.id) ? 'text-green-500' : 'text-gray-600 hover:text-gray-400'
+                  soloChannelIds.includes(channel.id) ? 'text-teal-600 dark:text-green-500' : 'text-gray-600 hover:text-gray-400'
                 }`}
                 title={soloChannelIds.includes(channel.id) ? "Un-solo" : "Solo this channel"}
               >
@@ -307,7 +307,7 @@ const SettingsPanel = ({
               onClick={() => setActiveAddMode(activeAddMode === 'category' ? null : 'category')}
               className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 group relative overflow-hidden ${
                 activeAddMode === 'category' 
-                  ? 'bg-green-50 dark:bg-green-900/20 border-green-500 text-green-600 dark:text-green-400 shadow-md scale-[1.02]' 
+                  ? 'bg-teal-50 dark:bg-green-900/20 border-teal-500 dark:border-green-500 text-teal-600 dark:text-green-400 shadow-md scale-[1.02]' 
                   : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-sm hover:text-gray-700 dark:hover:text-gray-300'
               }`}
               title="Add Category"
@@ -478,7 +478,7 @@ const SettingsPanel = ({
                         <button
                           onClick={() => onToggleCategorySolo(cat.id)}
                           className={`p-1 rounded hover:bg-gray-800 transition-colors ${
-                            soloCategoryIds.includes(cat.id) ? 'text-green-500' : 'text-gray-600 hover:text-gray-400'
+                            soloCategoryIds.includes(cat.id) ? 'text-teal-600 dark:text-green-500' : 'text-gray-600 hover:text-gray-400'
                           }`}
                           title={soloCategoryIds.includes(cat.id) ? "Un-solo Category" : "Solo this Category"}
                         >

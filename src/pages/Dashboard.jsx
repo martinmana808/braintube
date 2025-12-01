@@ -515,7 +515,7 @@ function Dashboard() {
       </div>
 
       {/* Middle Column: Today */}
-      <div className="w-1/3 h-full border-l border-gray-800">
+      <div className="w-1/3 h-full border-l border-gray-200 dark:border-gray-800">
         <VideoColumn 
           title="Today" 
           videos={todayVideos} 
