@@ -1,5 +1,10 @@
 - Better UI
 - Proper area for saved
-- Each user should have their own database
-
-
+- ADD VIDEO should be a different hierarchy than add category and channel. Because that is not what the app is about. But it is a good feature to have. Probably it could show up in the SAVED VIDEOS panel, at the top. 
+- remove border in video modal (small and large)
+- Get proper color coding for VIDEO CATEGORY CHANNEL
+- get proper color coding for CHAT and SUMMARY in the video modals
+- standarise Soloing in expanded view
+- buttons per channel are dissapearing if not hovering
+- make light theme default
+- make instructional video

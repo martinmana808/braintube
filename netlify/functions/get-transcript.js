@@ -32,6 +32,14 @@ export const handler = async (event, context) => {
     };
   } catch (error) {
     console.error('Error fetching transcript:', error);
+    
+    if (error.message && error.message.includes('Transcript panel not found')) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ error: 'No transcript found for this video' }),
+      };
+    }
+
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to fetch transcript', details: error.message }),

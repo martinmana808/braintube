@@ -200,7 +200,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
 
         {/* Seen Videos Section */}
         {seenVideos.length > 0 && (
-          <div className="pt-4 border-t border-gray-800">
+          <div className="pt-4 border-t dark:border-gray-800 border-gray-200">
             <button 
               onClick={() => setIsSeenCollapsed(!isSeenCollapsed)}
               className="flex items-center gap-2 w-full text-left mb-4 group"
@@ -247,7 +247,7 @@ const VideoColumn = ({ title, videos, emptyMessage, videoStates, onToggleSeen, o
 
         {/* Deleted Videos Section (Bin) - Only if showBin is true */}
         {showBin && deletedVideos.length > 0 && (
-          <div className="pt-4 border-t border-gray-800">
+          <div className="pt-4 border-t dark:border-gray-800 border-gray-200">
             <button 
               onClick={() => setIsDeletedCollapsed(!isDeletedCollapsed)}
               className="flex items-center gap-2 w-full text-left mb-4 group"

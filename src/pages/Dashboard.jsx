@@ -7,15 +7,18 @@ import { supabase } from '../services/supabase';
 import { generateSummary as generateSummaryService } from '../services/ai';
 import VideoModal from '../components/VideoModal';
 import SummaryModal from '../components/SummaryModal';
+import OnboardingModal from '../components/OnboardingModal';
+import HelpModal from '../components/HelpModal';
 
 import ConfirmationModal from '../components/ConfirmationModal';
-import SettingsModal from '../components/SettingsModal';
+// import SettingsModal from '../components/SettingsModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings } from 'lucide-react';
 
 function Dashboard() {
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('yt_curator_api_key') || import.meta.env.VITE_YOUTUBE_API_KEY || '');
-  const [aiApiKey, setAiApiKey] = useState(() => localStorage.getItem('yt_curator_ai_api_key') || '');
+  const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+  const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
   const [channels, setChannels] = useState([]);
   const [videoStates, setVideoStates] = useState({});
@@ -30,6 +33,9 @@ function Dashboard() {
   const [soloCategoryIds, setSoloCategoryIds] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [user, setUser] = useState(null);
 
   // Modal State
   const [modalConfig, setModalConfig] = useState({
@@ -69,14 +75,32 @@ function Dashboard() {
     setModalConfig(prev => ({ ...prev, isOpen: false }));
   };
 
-  // Persistence for API Keys
+  // Supabase Auth and Data Fetching
   useEffect(() => {
-    localStorage.setItem('yt_curator_api_key', apiKey);
-  }, [apiKey]);
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchData(session.user.id);
+      }
+    });
 
-  useEffect(() => {
-    localStorage.setItem('yt_curator_ai_api_key', aiApiKey);
-  }, [aiApiKey]);
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchData(session.user.id);
+      } else {
+        setChannels([]);
+        setCategories([]);
+        setVideoStates({});
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+
 
   // Theme Persistence
   useEffect(() => {
@@ -94,63 +118,81 @@ function Dashboard() {
   };
 
   // Supabase Data Fetching
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      console.log('Dashboard: fetchData started');
+  const fetchData = async (userId) => {
+    if (!userId) return;
+    
+    setLoading(true);
+    console.log('Dashboard: fetchData started');
+    
+    // Fetch Categories
+    const { data: categoriesData, error: categoriesError } = await supabase
+      .from('categories')
+      .select('*')
+      .order('name');
       
-      // Fetch Categories
-      const { data: categoriesData, error: categoriesError } = await supabase.from('categories').select('*').order('name');
-      if (categoriesError) console.error('Error fetching categories:', categoriesError);
-      if (categoriesData) setCategories(categoriesData);
+    if (categoriesError) console.error('Error fetching categories:', categoriesError);
+    if (categoriesData) setCategories(categoriesData);
 
-      // Fetch Channels
-      const { data: channelsData, error: channelsError } = await supabase.from('channels').select('*');
-      if (channelsError) console.error('Error fetching channels:', channelsError);
-      if (channelsData) {
-        // Map DB snake_case to frontend camelCase
-        const mappedChannels = channelsData.map(c => ({
-          ...c,
-          categoryId: c.category_id,
-          uploadsPlaylistId: c.uploads_playlist_id
-        }));
-        setChannels(mappedChannels);
-      }
-
-      // Fetch Video Metadata
-      const { data: videoData, error: videoMetadataError } = await supabase.from('video_metadata').select('*');
-      if (videoMetadataError) console.error('Error fetching video metadata:', videoMetadataError);
-      if (videoData) {
-        const states = videoData.reduce((acc, item) => {
-          acc[item.video_id] = { 
-            seen: item.seen, 
-            saved: item.saved, 
-            deleted: item.deleted, 
-            summary: item.summary,
-            lastUpdated: new Date(item.last_updated).getTime() 
-          };
-          return acc;
-        }, {});
-        setVideoStates(states);
-      }
+    // Fetch Channels
+    const { data: channelsData, error: channelsError } = await supabase
+      .from('channels')
+      .select('*');
       
-      setLoading(false);
-      console.log('Dashboard: fetchData finished', { categories: categoriesData?.length, channels: channelsData?.length });
-    };
+    if (channelsError) console.error('Error fetching channels:', channelsError);
+    if (channelsData) {
+      // Map DB snake_case to frontend camelCase
+      const mappedChannels = channelsData.map(c => ({
+        ...c,
+        categoryId: c.category_id,
+        uploadsPlaylistId: c.uploads_playlist_id
+      }));
+      setChannels(mappedChannels);
+    }
 
-    fetchData();
-  }, []);
+    // Fetch Video Metadata
+    const { data: videoData, error: videoMetadataError } = await supabase
+      .from('video_metadata')
+      .select('*');
+      
+    if (videoMetadataError) console.error('Error fetching video metadata:', videoMetadataError);
+    if (videoData) {
+      const states = videoData.reduce((acc, item) => {
+        acc[item.video_id] = { 
+          seen: item.seen, 
+          saved: item.saved, 
+          deleted: item.deleted, 
+          summary: item.summary,
+          lastUpdated: new Date(item.last_updated).getTime() 
+        };
+        return acc;
+      }, {});
+      setVideoStates(states);
+    }
+    
+    setLoading(false);
+    console.log('Dashboard: fetchData finished', { categories: categoriesData?.length, channels: channelsData?.length });
+
+    // Check for onboarding condition
+    if (channelsData && channelsData.length === 0) {
+        // Check if we've already shown it this session
+        const hasShownSession = sessionStorage.getItem('hasShownOnboarding');
+        if (!hasShownSession) {
+            setShowOnboarding(true);
+            sessionStorage.setItem('hasShownOnboarding', 'true');
+        }
+    }
+  };
 
   // Fetch Data
   useEffect(() => {
-    if (!apiKey || channels.length === 0) return;
+    if (!YOUTUBE_API_KEY || channels.length === 0) return;
 
     const fetchAllVideos = async () => {
       setLoading(true);
       console.log('Dashboard: fetchAllVideos started', { channelsCount: channels.length });
       try {
         const activeChannels = channels.filter(c => c.visible !== false); // Default to true if undefined
-        const promises = activeChannels.map(channel => fetchVideos(apiKey, channel.uploads_playlist_id || channel.uploadsPlaylistId));
+        const promises = activeChannels.map(channel => fetchVideos(YOUTUBE_API_KEY, channel.uploads_playlist_id || channel.uploadsPlaylistId));
         const results = await Promise.all(promises);
         const allVideos = results.flat().sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
         setVideos(allVideos);
@@ -165,10 +207,10 @@ function Dashboard() {
     fetchAllVideos();
     const interval = setInterval(fetchAllVideos, 1000 * 60 * 60); // Refresh every hour
     return () => clearInterval(interval);
-  }, [apiKey, channels]);
+  }, [YOUTUBE_API_KEY, channels]);
 
   const addChannel = async (channelIdOrUrl) => {
-    if (!apiKey) return;
+    if (!YOUTUBE_API_KEY) return;
     
     let channelId = channelIdOrUrl;
     
@@ -179,7 +221,7 @@ function Dashboard() {
     }
 
     try {
-      const details = await fetchChannelDetails(apiKey, channelId);
+      const details = await fetchChannelDetails(YOUTUBE_API_KEY, channelId);
       if (channels.some(c => c.id === details.id)) {
         showAlert('Duplicate Channel', 'This channel has already been added to your list.');
         return;
@@ -191,7 +233,8 @@ function Dashboard() {
         thumbnail: details.thumbnail,
         uploads_playlist_id: details.uploadsPlaylistId,
         visible: true,
-        category_id: null
+        category_id: null,
+        user_id: user.id
       };
 
       const { error } = await supabase.from('channels').insert([newChannel]);
@@ -206,11 +249,11 @@ function Dashboard() {
   };
 
   const addVideoByLink = async (url, onDuplicate) => {
-    if (!apiKey) return;
+    if (!YOUTUBE_API_KEY) return;
     
     try {
       // 1. Fetch Video Details
-      const videoDetails = await fetchVideoDetails(apiKey, url);
+      const videoDetails = await fetchVideoDetails(YOUTUBE_API_KEY, url);
       
       // 2. Check for Duplicate
       if (videoStates[videoDetails.id]?.saved) {
@@ -231,14 +274,15 @@ function Dashboard() {
       
       if (!channelExists) {
         // Add Channel
-        const channelDetails = await fetchChannelDetails(apiKey, videoDetails.channelId);
+        const channelDetails = await fetchChannelDetails(YOUTUBE_API_KEY, videoDetails.channelId);
         const newChannel = {
           id: channelDetails.id,
           name: channelDetails.name,
           thumbnail: channelDetails.thumbnail,
           uploads_playlist_id: channelDetails.uploadsPlaylistId,
           visible: true,
-          category_id: null
+          category_id: null,
+          user_id: user.id
         };
 
         const { error } = await supabase.from('channels').insert([newChannel]);
@@ -324,7 +368,7 @@ function Dashboard() {
     if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
       throw new Error('Category already exists');
     }
-    const { data, error } = await supabase.from('categories').insert([{ name }]).select();
+    const { data, error } = await supabase.from('categories').insert([{ name, user_id: user.id }]).select();
     if (error) {
       console.error("Error adding category:", error);
     } else if (data && data.length > 0) {
@@ -374,7 +418,8 @@ function Dashboard() {
       saved: newState.saved || false,
       deleted: newState.deleted || false,
       summary: newState.summary,
-      last_updated: new Date().toISOString()
+      last_updated: new Date().toISOString(),
+      user_id: user.id
     });
 
     if (error) console.error("Error updating video state:", error);
@@ -489,7 +534,7 @@ function Dashboard() {
       if (!transcript) throw new Error('No transcript available');
 
       // 2. Generate Summary
-      const aiSummary = await generateSummaryService(transcript, aiApiKey);
+      const aiSummary = await generateSummaryService(transcript, GROQ_API_KEY);
 
       // 3. Update State & DB
       updateVideoState(video.id, { summary: aiSummary });
@@ -512,10 +557,6 @@ function Dashboard() {
       {/* Left Column: Explorer (Collapsible) */}
       <div className={`${isSidebarCollapsed ? 'w-20' : 'w-80'} h-full border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out flex-shrink-0`}>
         <SettingsPanel 
-          apiKey={apiKey} 
-          setApiKey={setApiKey} 
-          aiApiKey={aiApiKey}
-          setAiApiKey={setAiApiKey}
           channels={channels} 
           onAddChannel={addChannel} 
           onRemoveChannel={removeChannel} 
@@ -534,6 +575,7 @@ function Dashboard() {
           theme={theme}
           toggleTheme={toggleTheme}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenHelp={() => setIsHelpOpen(true)}
           isCollapsed={isSidebarCollapsed}
           onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
@@ -577,8 +619,6 @@ function Dashboard() {
             key="video-modal"
             video={selectedVideo} 
             onClose={() => setSelectedVideo(null)} 
-            apiKey={apiKey}
-            aiApiKey={aiApiKey}
             state={videoStates[selectedVideo.id] || {}}
             onToggleSeen={toggleSeen}
             onToggleSaved={toggleSaved}
@@ -614,19 +654,33 @@ function Dashboard() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {isSettingsOpen && (
           <SettingsModal
             isOpen={isSettingsOpen}
             onClose={() => setIsSettingsOpen(false)}
-            apiKey={apiKey}
-            setApiKey={setApiKey}
-            aiApiKey={aiApiKey}
-            setAiApiKey={setAiApiKey}
             onAddVideoByLink={addVideoByLink}
             onAddChannel={addChannel}
             onAddCategory={addCategory}
           />
+        )}
+      </AnimatePresence> */}
+
+      <AnimatePresence>
+        {showOnboarding && (
+            <OnboardingModal 
+                isOpen={showOnboarding} 
+                onClose={() => setShowOnboarding(false)} 
+            />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isHelpOpen && (
+            <HelpModal 
+                isOpen={isHelpOpen} 
+                onClose={() => setIsHelpOpen(false)} 
+            />
         )}
       </AnimatePresence>
     </div>

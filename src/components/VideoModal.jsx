@@ -7,7 +7,8 @@ import { supabase } from '../services/supabase';
 import { generateSummary as generateSummaryService, chatWithVideo, generateTags } from '../services/ai';
 import LZString from 'lz-string';
 
-const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onToggleSaved, onDelete }) => {
+const VideoModal = ({ video, onClose, state, onToggleSeen, onToggleSaved, onDelete }) => {
+  const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
   const { seen, saved, deleted } = state || {};
   const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'chat' | 'tags'
   const [summary, setSummary] = useState(null);
@@ -62,6 +63,9 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
     try {
       const response = await fetch(`/.netlify/functions/get-transcript?videoId=${video.id}`);
       if (!response.ok) {
+        if (response.status === 404) {
+             throw new Error('No transcript available for this video');
+        }
         throw new Error('Failed to fetch transcript');
       }
       const { transcript: fetchedTranscript } = await response.json();
@@ -82,7 +86,7 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
     setError(null);
     try {
       const currentTranscript = await fetchTranscript();
-      const aiSummary = await generateSummaryService(currentTranscript, aiApiKey);
+      const aiSummary = await generateSummaryService(currentTranscript, GROQ_API_KEY);
 
       setSummary(aiSummary);
 
@@ -94,8 +98,12 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
       });
 
     } catch (err) {
-      console.error("Error generating summary:", err);
-      setError(err.message);
+      console.error('Error generating summary:', err);
+      if (err.message === 'No transcript available for this video') {
+          setError('No transcript available for this video. AI summary cannot be generated.');
+      } else {
+          setError('Failed to generate summary. Please check your API key and try again.');
+      }
     } finally {
       setLoadingSummary(false);
     }
@@ -112,7 +120,7 @@ const VideoModal = ({ video, onClose, apiKey, aiApiKey, state, onToggleSeen, onT
 
     try {
       const currentTranscript = await fetchTranscript();
-      const aiResponse = await chatWithVideo(currentTranscript, chatMessages, userMessage.content, aiApiKey);
+      const aiResponse = await chatWithVideo(currentTranscript, chatMessages, userMessage.content, GROQ_API_KEY);
       
       setChatMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
     } catch (err) {
@@ -336,30 +344,26 @@ This was created and copied in BrainTube`;
               </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-gray-200 dark:border-gray-800">
+            <div className="flex ">
               <button
                 onClick={() => setActiveTab('summary')}
-                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'summary' ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                className={`flex-1 text-sm font-bold transition-colors relative ${activeTab === 'summary' ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
               >
                 <div className="flex items-center justify-center gap-2">
                   <Sparkles className="w-4 h-4" />
                   SUMMARY
                 </div>
-                {activeTab === 'summary' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-600 dark:bg-green-400" />
-                )}
+                
               </button>
               <button
                 onClick={() => setActiveTab('chat')}
-                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'chat' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                className={`flex-1 text-sm font-bold transition-colors relative ${activeTab === 'chat' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
               >
                 <div className="flex items-center justify-center gap-2">
                   <MessageSquare className="w-4 h-4" />
                   CHAT
                 </div>
-                {activeTab === 'chat' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400" />
-                )}
+                
               </button>
               {/* 
               <button
@@ -389,7 +393,7 @@ This was created and copied in BrainTube`;
                   {summary && (
                     <button 
                       onClick={handleCopySummary}
-                      className="text-gray-500 hover:text-white transition-colors p-1"
+                      className="text-gray-500 dark:hover:text-white hover:text-black transition-colors p-1"
                       title="Copy Summary"
                     >
                       <Copy className="w-4 h-4" />

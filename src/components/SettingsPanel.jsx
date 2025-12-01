@@ -3,23 +3,26 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus, X, Sun, Moon, User, Settings, LogOut, Brain } from 'lucide-react';
+import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus, X, Sun, Moon, User, Settings, LogOut, Brain, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const SettingsPanel = ({ 
   channels, onRemoveChannel, onToggleSolo, onClearSolo, soloChannelIds,
-  categories, onDeleteCategory, updateChannelCategory,
+
 
   searchQuery, onSearchChange,
   soloCategoryIds, onToggleCategorySolo,
-  onAddVideoByLink, onAddChannel, onAddCategory, apiKey,
+  categories, onAddCategory, onDeleteCategory, updateChannelCategory,
+  onAddVideoByLink, onAddChannel,
   theme, toggleTheme,
   onOpenSettings,
+  onOpenHelp,
   isCollapsed,
   onToggleSidebar
 }) => {
+  const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [viewMode, setViewMode] = useState('categories'); // 'categories' or 'all'
+  const [viewMode, setViewMode] = useState('all'); // 'categories' or 'all'
   const [collapsedCategories, setCollapsedCategories] = useState(new Set());
   const [activeAddMode, setActiveAddMode] = useState(null); // 'video', 'channel', 'category', null
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -228,18 +231,23 @@ const SettingsPanel = ({
       <div className={`flex-none h-[88px] border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 z-10 flex items-center ${isCollapsed ? 'justify-center px-2' : 'px-4 gap-3'}`}>
         {/* Logo */}
         <div className="flex items-center gap-2 overflow-hidden">
-          <button 
-            ref={toggleBtnRef}
-            className="bg-gray-900 dark:bg-white p-1.5 rounded-lg flex-shrink-0 cursor-pointer hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 focus:ring-blue-500" 
-            onClick={onToggleSidebar}
-            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-          >
+          <div className="bg-gray-900 dark:bg-white p-1.5 rounded-lg flex-shrink-0">
             <Brain className="w-5 h-5 text-white dark:text-black" />
-          </button>
+          </div>
           {!isCollapsed && (
             <span className="font-bold text-lg tracking-tight text-gray-900 dark:text-white whitespace-nowrap">BrainTube</span>
           )}
         </div>
+        
+        {/* Sidebar Toggle Tab */}
+        <button
+            ref={toggleBtnRef}
+            onClick={onToggleSidebar}
+            className="absolute -right-3 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full p-1 shadow-md hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 z-50 transition-colors"
+            title={isCollapsed ? "Expand" : "Collapse"}
+        >
+            {isCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
+        </button>
       </div>
 
       {/* Scrollable Content */}
@@ -407,7 +415,7 @@ const SettingsPanel = ({
                       });
                       e.target.elements.videoUrl.value = '';
                     }
-                  }} className="flex gap-2 mb-4">
+                  }} className="flex gap-2 mb-4 mt-4">
                     <input
                       autoFocus
                       name="videoUrl"
@@ -417,7 +425,7 @@ const SettingsPanel = ({
                     />
                     <button
                       type="submit"
-                      disabled={!apiKey}
+                      disabled={!YOUTUBE_API_KEY}
                       className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <Plus className="h-4 w-4" />
@@ -434,7 +442,7 @@ const SettingsPanel = ({
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden"
                 >
-                  <form onSubmit={handleAddChannel} className="flex gap-2 mb-4">
+                  <form onSubmit={handleAddChannel} className="flex gap-2 mb-4 mt-4">
                     <input
                       autoFocus
                       type="text"
@@ -445,7 +453,7 @@ const SettingsPanel = ({
                     />
                     <button
                       type="submit"
-                      disabled={isAddingChannel || !apiKey}
+                      disabled={isAddingChannel || !YOUTUBE_API_KEY}
                       className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <Plus className="h-4 w-4" />
@@ -462,7 +470,7 @@ const SettingsPanel = ({
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden"
                 >
-                  <form onSubmit={handleAddCategory} className="flex gap-2 mb-4">
+                  <form onSubmit={handleAddCategory} className="flex gap-2 mb-4 mt-4">
                     <input
                       autoFocus
                       type="text"
@@ -506,35 +514,47 @@ const SettingsPanel = ({
                 )}
               </div>
               <div className={`flex ${isCollapsed ? 'flex-col' : ''} gap-2`}>
-                <button
-                  onClick={() => setViewMode('categories')}
-                  className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
-                    viewMode === 'categories' 
-                      ? 'bg-gray-100 dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100' 
-                      : 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
-                  title="Categories View"
-                >
-                  {isCollapsed ? <Folder className="w-3.5 h-3.5" /> : 'Categories'}
-                </button>
-                <button
-                  onClick={() => setViewMode('all')}
-                  className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
-                    viewMode === 'all' 
-                      ? 'bg-gray-100 dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100' 
-                      : 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
-                  }`}
-                  title="All Channels View"
-                >
-                  {isCollapsed ? <User className="w-3.5 h-3.5" /> : 'All'}
-                </button>
+                {categories.length > 0 && (
+                    <>
+                        <button
+                        onClick={() => setViewMode('all')}
+                        className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
+                            viewMode === 'all' 
+                            ? 'bg-gray-100 dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100' 
+                            : 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                        title="All Channels View"
+                        >
+                        {isCollapsed ? <User className="w-3.5 h-3.5" /> : 'All'}
+                        </button>
+                        <button
+                        onClick={() => setViewMode('categories')}
+                        className={`px-2 py-1 rounded text-[10px] font-mono uppercase tracking-wider border transition-colors ${
+                            viewMode === 'categories' 
+                            ? 'bg-gray-100 dark:bg-gray-950 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100' 
+                            : 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-gray-300 dark:hover:border-gray-600'
+                        }`}
+                        title="Categories View"
+                        >
+                        {isCollapsed ? <Folder className="w-3.5 h-3.5" /> : 'Categories'}
+                        </button>
+                    </>
+                )}
               </div>
             </div>
             
             {viewMode === 'all' ? (
               <div className="">
                 {channels.length > 0 ? renderChannelList(channels) : (
-                    <div className="text-gray-700 text-xs italic pl-5">No channels monitored</div>
+                    <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+                        <p className="text-gray-400 dark:text-gray-500 text-xs mb-3">No channels monitored</p>
+                        <button
+                            onClick={() => setActiveAddMode('channel')}
+                            className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors shadow-sm flex items-center gap-2"
+                        >
+                            <Plus className="w-3 h-3" /> {!isCollapsed && "Add a channel to start"}
+                        </button>
+                    </div>
                 )}
               </div>
             ) : (
@@ -695,26 +715,33 @@ const SettingsPanel = ({
             {/* Theme Toggle */}
             <button
                 onClick={toggleTheme}
-                className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 focus:ring-offset-1 ${
-                theme === 'dark' ? 'bg-blue-500/10' : 'bg-gray-300'
+                className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none border ${
+                theme === 'dark' ? 'border-gray-700 ' : 'border-gray-300 '
                 }`}
                 title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
                 <span
                 className={`${
-                    theme === 'dark' ? 'translate-x-4 bg-white' : 'translate-x-1 '
+                    theme === 'dark' ? 'translate-x-4' : 'translate-x-1 '
                 } bg-gray-500 inline-block h-3 w-3 transform rounded-full  transition-transform duration-200`}
                 />
             </button>
 
             <div className="flex items-center gap-1 border-l border-gray-200 dark:border-gray-700 pl-2 ml-1">
                 <button
+                onClick={onOpenHelp}
+                className="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                title="Help"
+                >
+                <HelpCircle className="w-3.5 h-3.5" />
+                </button>
+                {/* <button
                 onClick={onOpenSettings}
                 className="p-1.5 text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
                 title="Settings"
                 >
                 <Settings className="w-3.5 h-3.5" />
-                </button>
+                </button> */}
                 <button
                 onClick={async () => {
                     await supabase.auth.signOut();
