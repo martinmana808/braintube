@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../services/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus, X, Sun, Moon } from 'lucide-react';
+import { Trash2, Eye, Folder, ChevronDown, Search, Plus, Youtube, FolderPlus, X, Sun, Moon, User } from 'lucide-react';
 
 const SettingsPanel = ({ 
   channels, onRemoveChannel, onToggleSolo, onClearSolo, soloChannelIds,
@@ -11,6 +13,8 @@ const SettingsPanel = ({
   onAddVideoByLink, onAddChannel, onAddCategory, apiKey,
   theme, toggleTheme
 }) => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
   const [viewMode, setViewMode] = useState('categories'); // 'categories' or 'all'
   const [collapsedCategories, setCollapsedCategories] = useState(new Set());
   const [activeAddMode, setActiveAddMode] = useState(null); // 'video', 'channel', 'category', null
@@ -20,6 +24,10 @@ const SettingsPanel = ({
   const [newChannelId, setNewChannelId] = useState('');
   const [newCategoryName, setNewCategoryName] = useState('');
   const [isAddingChannel, setIsAddingChannel] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+  }, []);
 
   const handleAddChannel = async (e) => {
     e.preventDefault();
@@ -182,6 +190,30 @@ const SettingsPanel = ({
             title={theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+        </div>
+
+        {/* User Profile Card */}
+        <div className="px-4 mb-6">
+          <button 
+            onClick={() => navigate('/profile')}
+            className="w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-xl hover:border-gray-300 dark:hover:border-gray-700 transition-all group text-left shadow-sm"
+          >
+            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
+              {user?.user_metadata?.avatar_url ? (
+                <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-5 h-5 text-gray-400" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
+                {user?.user_metadata?.full_name || 'User'}
+              </div>
+              <div className="text-xs text-gray-500 truncate">
+                {user?.email}
+              </div>
+            </div>
           </button>
         </div>
       <div className="p-4 pt-0 pb-20">
