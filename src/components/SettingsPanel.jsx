@@ -195,7 +195,7 @@ const SettingsPanel = ({
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-4 pt-4 pb-20">
+      <div className="flex-1 overflow-y-auto p-4 pt-4 pb-20 custom-scrollbar">
 
         {/* Global Search - Always Visible */}
         <div className="mb-6">
