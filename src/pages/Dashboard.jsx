@@ -505,10 +505,12 @@ function Dashboard() {
     }
   };
 
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-white dark:bg-black text-gray-900 dark:text-gray-300 font-sans transition-colors duration-200">
-      {/* Left Column: Explorer */}
-      <div className="w-1/3 h-full border-r border-gray-200 dark:border-gray-800">
+      {/* Left Column: Explorer (Collapsible) */}
+      <div className={`${isSidebarCollapsed ? 'w-20' : 'w-80'} h-full border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out flex-shrink-0`}>
         <SettingsPanel 
           apiKey={apiKey} 
           setApiKey={setApiKey} 
@@ -532,35 +534,40 @@ function Dashboard() {
           theme={theme}
           toggleTheme={toggleTheme}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          isCollapsed={isSidebarCollapsed}
+          onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
       </div>
 
-      {/* Middle Column: Today */}
-      <div className="w-1/3 h-full border-r border-gray-200 dark:border-gray-800">
-        <VideoColumn 
-          title="Today" 
-          videos={todayVideos} 
-          emptyMessage="No videos today"
-          loading={loading}
-          showBin={true}
-          showSaved={false}
-          searchQuery={searchQuery}
-          {...commonProps}
-        />
-      </div>
+      {/* Main Content Area (Expands to fill space) */}
+      <div className="flex-1 flex h-full min-w-0">
+        {/* Middle Column: Today */}
+        <div className="flex-1 h-full border-r border-gray-200 dark:border-gray-800 min-w-0">
+          <VideoColumn 
+            title="Today" 
+            videos={todayVideos} 
+            emptyMessage="No videos today"
+            loading={loading}
+            showBin={true}
+            showSaved={false}
+            searchQuery={searchQuery}
+            {...commonProps}
+          />
+        </div>
 
-      {/* Right Column: Past 7 Days */}
-      <div className="w-1/3 h-full">
-        <VideoColumn 
-          title="Past 7 Days & Saved" 
-          videos={pastVideos} 
-          emptyMessage="No recent videos"
-          loading={loading}
-          showBin={false}
-          showSaved={true}
-          searchQuery={searchQuery} // Pass for highlighting if we want, or just to trigger updates
-          {...commonProps}
-        />
+        {/* Right Column: Past 7 Days */}
+        <div className="flex-1 h-full min-w-0">
+          <VideoColumn 
+            title="Past 7 Days & Saved" 
+            videos={pastVideos} 
+            emptyMessage="No recent videos"
+            loading={loading}
+            showBin={false}
+            showSaved={true}
+            searchQuery={searchQuery} // Pass for highlighting if we want, or just to trigger updates
+            {...commonProps}
+          />
+        </div>
       </div>
 
 
