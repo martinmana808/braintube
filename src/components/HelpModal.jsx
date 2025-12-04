@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Youtube, FolderPlus, Bookmark, Sparkles, Copy, Trash2, Eye, X, Plus, FileText } from 'lucide-react';
+import { Youtube, FolderPlus, Bookmark, Sparkles, Copy, Trash2, Eye, X, Plus, FileText, Heart } from 'lucide-react';
 
 const HelpModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
@@ -25,7 +25,7 @@ const HelpModal = ({ isOpen, onClose }) => {
           {/* Section 1: Getting Started */}
           <div className="mb-8">
             <h3 className="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">Getting Started</h3>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3">
               <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
                 <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400">
                   <Youtube className="w-5 h-5" />
@@ -44,7 +44,7 @@ const HelpModal = ({ isOpen, onClose }) => {
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Organize channels into custom categories to filter your view.</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 md:col-span-2">
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
                 <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400">
                   <Plus className="w-5 h-5" />
                 </div>
@@ -72,7 +72,7 @@ const HelpModal = ({ isOpen, onClose }) => {
 
               <div className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 <div className="p-2 rounded-lg bg-teal-100 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400">
-                  <Bookmark className="w-5 h-5" />
+                  <Heart className="w-5 h-5" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 dark:text-white text-sm">Save Video</h4>
@@ -117,6 +117,15 @@ const HelpModal = ({ isOpen, onClose }) => {
                 <div>
                   <h4 className="font-semibold text-gray-900 dark:text-white text-sm">Download Entry</h4>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Download the video metadata and summary as a Markdown file.</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 p-3 rounded-xl border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400">
+                  <Eye className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white text-sm">Solo Channels</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Click on the channel's image to solo it and hide all other channels from your feed.</p>
                 </div>
               </div>
             </div>
