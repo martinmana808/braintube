@@ -230,7 +230,7 @@ This was created and copied in BrainTube`;
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: "spring", duration: 0.3, bounce: 0 }}
-        className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden w-full max-w-6xl h-[80vh] flex shadow-2xl relative" 
+        className="bg-white dark:bg-gray-900 rounded-xl overflow-hidden w-full max-w-6xl h-[80vh] flex shadow-2xl relative" 
         onClick={e => e.stopPropagation()}
       >
         
@@ -302,7 +302,7 @@ This was created and copied in BrainTube`;
                   onClick={() => onToggleSaved(video.id)}
                   className={`flex-1 flex items-center justify-center p-2 rounded transition-colors ${
                     saved 
-                      ? 'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-500 border border-purple-500/50' 
+                      ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-500 border border-teal-500/50' 
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200'
                   }`}
                   title={saved ? "Unsave Video" : "Save Video"}
