@@ -208,8 +208,17 @@ function Dashboard() {
       // Don't start sync if quota error is already active
       if (quotaError) return;
 
-      const SYNC_THRESHOLD = 1000 * 60 * 60 * 12; // 12 hours
-      const now = Date.now();
+      // Strict Hourly Sync: Max 1 sync per hour slot
+      // We check if the lastSyncedAt timestamp falls within the CURRENT hour's window.
+      // e.g. If now is 10:45, the window is 10:00:00 - 10:59:59.
+      // If last sync was at 09:55, it's outside the window -> SYNC.
+      // If last sync was at 10:05, it's inside the window -> SKIP.
+      
+      const now = new Date();
+      const currentHourStart = new Date(now);
+      currentHourStart.setMinutes(0, 0, 0); // Reset to start of the hour
+      const currentHourStartMs = currentHourStart.getTime();
+
       const activeChannels = channels.filter(c => c.visible !== false);
       
       let updatedAny = false;
@@ -218,7 +227,11 @@ function Dashboard() {
       for (const channel of activeChannels) {
         const lastSynced = channel.lastSyncedAt ? new Date(channel.lastSyncedAt).getTime() : 0;
         
-        if (now - lastSynced > SYNC_THRESHOLD || channel.cachedVideos.length === 0) {
+        // Check if lastSynced is BEFORE the start of the current hour
+        // AND if we haven't already hit quota error
+        const isStale = lastSynced < currentHourStartMs;
+        
+        if ((isStale || channel.cachedVideos.length === 0) && !quotaError) {
           console.log(`Syncing stale channel: ${channel.name}`);
           try {
             setLoading(true);

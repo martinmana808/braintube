@@ -5,6 +5,10 @@ BrainTube is a curated YouTube experience allowing users to organize channels an
 **Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtubei.js.
 
 ## History
+### [2026-01-03] Strict Schedule & Keep Alive | [Technical Details](./GEMINI--logs.md#log-20260103-strict-schedule)
+- Implemented strict hourly sync (max 24 checks/day) to prevent double-fetching.
+- Added GitHub Action (`keep-alive.yml`) to ping Supabase weekly and prevent project pausing.
+
 ### [2026-01-03] Optimized Sync & UI Cleanup | [Technical Details](./GEMINI--logs.md#log-20260103-optimized-sync)
 - Optimized `fetchVideos` to only fetch durations for new videos, saving API quota.
 - Implemented smart cache merging in `Dashboard.jsx` to preserve history.

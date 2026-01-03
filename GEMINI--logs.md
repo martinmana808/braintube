@@ -275,3 +275,38 @@ The "Refresh Feed" button now works silently in the background, with the loading
 - Sync logic is now quota-optimized.
 - UI is cleaner without repetitive sync alerts.
 - Channel historical cache is preserved (not overwritten).
+
+<a name="log-20260103-strict-schedule"></a>
+## [2026-01-03] Strict Schedule & Keep Alive
+
+**User Prompt:** set up the GitHub Action file to Keep Alive. And lets set a STRICT SCHEDULE, but not every 6 hours, but every hour (max 24 times a day).
+
+### Verbatim Artifacts:
+
+#### Implementation Plan: Strict Schedule & Keep Alive
+
+We are refining the sync strategy to be strictly time-slot based (Hourly) and adding an automated "heartbeat" to prevent Supabase from pausing the free tier project.
+
+## User Review Required
+> [!IMPORTANT]
+> The GitHub Action requires a `SUPABASE_URL` and `SUPABASE_ANON_KEY` to be set as **Secrets** in your GitHub repository settings.
+> 1. Go to Repo Settings > Secrets and variables > Actions.
+> 2. Add `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
+
+## Proposed Changes
+
+### Automation (Keep Alive)
+#### [NEW] [.github/workflows/keep-alive.yml](file:///Users/martinmana/Documents/Projects/braintube/.github/workflows/keep-alive.yml)
+- A GitHub Action that runs on a schedule (`0 0 * * 1` - Every Monday).
+- It performs a simple `curl` request to your Supabase Rest API (e.g., reading the `channels` table with `limit=1`).
+- This counts as "Activity" and prevents the 7-day pause.
+
+### UI / Logic (Strict Hourly Sync)
+#### [MODIFY] [Dashboard.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/pages/Dashboard.jsx)
+- **Current Logic**: `now - lastSynced > 12 hours`.
+- **New Logic**:
+    1. Calculate the current "Hourly Slot" (e.g., `2026-01-03T14:00:00.000Z`).
+    2. Check if `lastSyncedAt` falls within this current slot.
+    3. If `yes`: Do nothing (Already synced this hour).
+    4. If `no`: Sync (and stamp with current time).
+- This ensures max **1 sync per hour** (24 max/day), and only if the user opens the app.
