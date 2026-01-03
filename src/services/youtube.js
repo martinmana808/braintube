@@ -97,37 +97,47 @@ export const fetchChannelDetails = async (apiKey, identifier) => {
   };
 };
 
-export const fetchVideos = async (apiKey, playlistId) => {
+export const fetchVideos = async (apiKey, playlistId, existingVideos = []) => {
   // 1. Fetch Playlist Items
   const response = await fetch(
     `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=10&key=${apiKey}`
   );
+  
   if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    if (response.status === 403 && errorData.error?.errors?.[0]?.reason === 'quotaExceeded') {
+       throw new Error('DAILY_QUOTA_EXCEEDED');
+    }
     throw new Error('Failed to fetch videos');
   }
   const data = await response.json();
   
   if (!data.items || data.items.length === 0) return [];
 
-  // 2. Extract Video IDs
-  const videoIds = data.items.map(item => item.snippet.resourceId.videoId).join(',');
+  // 2. Identify NEW Video IDs (those not in existingVideos)
+  const playlistVideoIds = data.items.map(item => item.snippet.resourceId.videoId);
+  const newVideoIds = playlistVideoIds.filter(id => !existingVideos.some(ev => ev.id === id));
 
-  // 3. Fetch Video Details (Duration)
-  const detailsResponse = await fetch(
-    `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds}&key=${apiKey}`
-  );
-  
+  // 3. Fetch Video Details (Duration) ONLY for new videos
   let durations = {};
-  if (detailsResponse.ok) {
-    const detailsData = await detailsResponse.json();
-    detailsData.items.forEach(item => {
-      durations[item.id] = item.contentDetails.duration;
-    });
+  if (newVideoIds.length > 0) {
+    const detailsResponse = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${newVideoIds.join(',')}&key=${apiKey}`
+    );
+    
+    if (detailsResponse.ok) {
+      const detailsData = await detailsResponse.json();
+      detailsData.items.forEach(item => {
+        durations[item.id] = item.contentDetails.duration;
+      });
+    }
   }
 
-  // 4. Merge Data
+  // 4. Merge Data: Use new durations or fallback to existing durations
   return data.items.map((item) => {
     const videoId = item.snippet.resourceId.videoId;
+    const existing = existingVideos.find(ev => ev.id === videoId);
+    
     return {
       id: videoId,
       title: item.snippet.title,
@@ -135,7 +145,7 @@ export const fetchVideos = async (apiKey, playlistId) => {
       channelTitle: item.snippet.channelTitle,
       publishedAt: item.snippet.publishedAt,
       channelId: item.snippet.channelId,
-      duration: durations[videoId] || '',
+      duration: durations[videoId] || existing?.duration || '',
     };
   });
 };

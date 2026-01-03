@@ -1,6 +1,24 @@
 
 export const generateSummary = async (transcript, apiKey) => {
-  const prompt = `Summarize the following YouTube video transcript in a concise, bulleted format. Highlight the key takeaways. \n\nTranscript: ${transcript.substring(0, 25000)}`;
+  const isFallback = transcript.includes('[FALLBACK CONTENT]');
+  
+  let prompt = '';
+  if (isFallback) {
+    prompt = `The following text is a VIDEO DESCRIPTION because the transcript is currently unavailable.
+    TASK: Provide a high-quality summary of what this video is about based on the available description text.
+    
+    CRITICAL INSTRUCTIONS:
+    - IGNORE all promotional links, social media handles, and affiliate disclaimers.
+    - If the description describes the video's content, expand on those points.
+    - If the description is vague, summarize the topic based on the key technical terms or entities mentioned.
+    - Do NOT state you cannot summarize unless the text is literally empty. Reach for any signal of content.
+    
+    Available Text: ${transcript.substring(0, 5000)}`;
+  } else {
+    prompt = `Summarize the following YouTube transcript in a detailed, bulleted format. Highlight key takeaways.
+    
+    Transcript: ${transcript.substring(0, 25000)}`;
+  }
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -27,11 +45,20 @@ export const generateSummary = async (transcript, apiKey) => {
 };
 
 export const chatWithVideo = async (transcript, history, question, apiKey) => {
-  const systemPrompt = `You are a helpful assistant that answers questions about a YouTube video based on its transcript. 
-  Here is the transcript:
-  ${transcript.substring(0, 25000)}
+  const isFallback = transcript.includes('[FALLBACK CONTENT]');
   
-  Answer the user's question based ONLY on the transcript provided. If the answer is not in the transcript, say so.`;
+  const systemPrompt = isFallback 
+    ? `You are a helpful assistant. The transcript for this video is currently unavailable, so you are answering based on the video's DESCRIPTION.
+       Description: ${transcript.substring(0, 5000)}
+       
+       TASK: Answer the user's question about the video based on the information provided in the description.
+       - Focus on the main topic, creators, and tools mentioned.
+       - If you can't find the answer, try to provide relevant context from the description or suggest what the video might cover.
+       - BE HELPFUL and avoid saying "the transcript doesn't mention" since we know it's a description.`
+    : `You are a helpful assistant answering questions about a YouTube video based on its transcript. 
+       Transcript: ${transcript.substring(0, 25000)}
+       
+       Answer the user's question based on the transcript. If the answer is not directly there, use the context to provide the best possible response.`;
 
   const messages = [
     { role: 'system', content: systemPrompt },

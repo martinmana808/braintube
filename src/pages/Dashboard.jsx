@@ -35,6 +35,7 @@ function Dashboard() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [quotaError, setQuotaError] = useState(false);
   const [user, setUser] = useState(null);
 
   // Modal State
@@ -136,7 +137,7 @@ function Dashboard() {
     // Fetch Channels
     const { data: channelsData, error: channelsError } = await supabase
       .from('channels')
-      .select('*');
+      .select('*, cached_videos, last_synced_at'); // Explicitly select cache columns
       
     if (channelsError) console.error('Error fetching channels:', channelsError);
     if (channelsData) {
@@ -144,9 +145,24 @@ function Dashboard() {
       const mappedChannels = channelsData.map(c => ({
         ...c,
         categoryId: c.category_id,
-        uploadsPlaylistId: c.uploads_playlist_id
+        uploadsPlaylistId: c.uploads_playlist_id,
+        cachedVideos: c.cached_videos || [],
+        lastSyncedAt: c.last_synced_at
       }));
       setChannels(mappedChannels);
+
+      // Hydrate videos from Cache (Supabase) if not in LocalStorage
+      const localCache = localStorage.getItem('bt_videos_cache');
+      if (localCache) {
+        setVideos(JSON.parse(localCache));
+      } else {
+        const allCached = mappedChannels.flatMap(c => c.cachedVideos);
+        if (allCached.length > 0) {
+          const sorted = allCached.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+          setVideos(sorted);
+          localStorage.setItem('bt_videos_cache', JSON.stringify(sorted));
+        }
+      }
     }
 
     // Fetch Video Metadata
@@ -162,6 +178,7 @@ function Dashboard() {
           saved: item.saved, 
           deleted: item.deleted, 
           summary: item.summary,
+          customTitle: item.custom_title,
           lastUpdated: new Date(item.last_updated).getTime() 
         };
         return acc;
@@ -183,31 +200,83 @@ function Dashboard() {
     }
   };
 
-  // Fetch Data
+  // Fetch Data (Smart Sync)
   useEffect(() => {
     if (!YOUTUBE_API_KEY || channels.length === 0) return;
 
-    const fetchAllVideos = async () => {
-      setLoading(true);
-      console.log('Dashboard: fetchAllVideos started', { channelsCount: channels.length });
-      try {
-        const activeChannels = channels.filter(c => c.visible !== false); // Default to true if undefined
-        const promises = activeChannels.map(channel => fetchVideos(YOUTUBE_API_KEY, channel.uploads_playlist_id || channel.uploadsPlaylistId));
-        const results = await Promise.all(promises);
-        const allVideos = results.flat().sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-        setVideos(allVideos);
-      } catch (error) {
-        console.error("Error fetching videos:", error);
-      } finally {
-        setLoading(false);
-        console.log('Dashboard: fetchAllVideos finished');
+    const syncStaleChannels = async () => {
+      // Don't start sync if quota error is already active
+      if (quotaError) return;
+
+      const SYNC_THRESHOLD = 1000 * 60 * 60 * 12; // 12 hours
+      const now = Date.now();
+      const activeChannels = channels.filter(c => c.visible !== false);
+      
+      let updatedAny = false;
+      let runningVideos = [...videos];
+
+      for (const channel of activeChannels) {
+        const lastSynced = channel.lastSyncedAt ? new Date(channel.lastSyncedAt).getTime() : 0;
+        
+        if (now - lastSynced > SYNC_THRESHOLD || channel.cachedVideos.length === 0) {
+          console.log(`Syncing stale channel: ${channel.name}`);
+          try {
+            setLoading(true);
+            const latestVideos = await fetchVideos(
+              YOUTUBE_API_KEY, 
+              channel.uploads_playlist_id || channel.uploadsPlaylistId,
+              channel.cachedVideos
+            );
+            
+            // Merge with existing cache for this channel
+            const latestIds = new Set(latestVideos.map(v => v.id));
+            const mergedChannelVideos = [
+              ...latestVideos, 
+              ...channel.cachedVideos.filter(v => !latestIds.has(v.id))
+            ];
+
+            // Update Supabase Cache
+            await supabase.from('channels').update({
+              cached_videos: mergedChannelVideos,
+              last_synced_at: new Date().toISOString()
+            }).eq('id', channel.id);
+
+            // Update running main videos list (the global state)
+            const others = runningVideos.filter(v => v.channelId !== channel.id);
+            runningVideos = [...others, ...mergedChannelVideos].sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+            
+            setVideos(runningVideos);
+            localStorage.setItem('bt_videos_cache', JSON.stringify(runningVideos));
+            
+            // Also update the channel state itself so subsequent iterations have the new cache
+            setChannels(prev => prev.map(c => c.id === channel.id ? { 
+              ...c, 
+              cachedVideos: mergedChannelVideos, 
+              lastSyncedAt: new Date().toISOString() 
+            } : c));
+
+            updatedAny = true;
+          } catch (error) {
+            console.error(`Error syncing channel ${channel.name}:`, error);
+            if (error.message === 'DAILY_QUOTA_EXCEEDED') {
+               setQuotaError(true);
+               break; 
+            }
+          }
+        }
       }
+
+      if (updatedAny) {
+        setQuotaError(false);
+      }
+      setLoading(false);
     };
 
-    fetchAllVideos();
-    const interval = setInterval(fetchAllVideos, 1000 * 60 * 60); // Refresh every hour
+    syncStaleChannels();
+    // Check for staleness every hour
+    const interval = setInterval(syncStaleChannels, 1000 * 60 * 60); 
     return () => clearInterval(interval);
-  }, [YOUTUBE_API_KEY, channels]);
+  }, [YOUTUBE_API_KEY, channels, quotaError]);
 
   const addChannel = async (channelIdOrUrl) => {
     if (!YOUTUBE_API_KEY) return;
@@ -234,14 +303,33 @@ function Dashboard() {
         uploads_playlist_id: details.uploadsPlaylistId,
         visible: true,
         category_id: null,
-        user_id: user.id
+        user_id: user.id,
+        cached_videos: [], // Initialize cache
+        last_synced_at: null
       };
 
       const { error } = await supabase.from('channels').insert([newChannel]);
       if (error) throw error;
 
-      // Map category_id from DB to categoryId for state consistency
-      setChannels(prev => [...prev, { ...newChannel, categoryId: newChannel.category_id }]); 
+      // Immediately fetch videos for the new channel to seed the cache
+      const initialVideos = await fetchVideos(YOUTUBE_API_KEY, newChannel.uploads_playlist_id);
+      await supabase.from('channels').update({
+        cached_videos: initialVideos,
+        last_synced_at: new Date().toISOString()
+      }).eq('id', newChannel.id);
+
+      // Update state
+      setChannels(prev => [...prev, { 
+        ...newChannel, 
+        categoryId: newChannel.category_id,
+        cachedVideos: initialVideos,
+        lastSyncedAt: new Date().toISOString()
+      }]); 
+
+      const updatedAllVideos = [...videos, ...initialVideos].sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+      setVideos(updatedAllVideos);
+      localStorage.setItem('bt_videos_cache', JSON.stringify(updatedAllVideos));
+
     } catch (error) {
       console.error("Error adding channel:", error);
       showAlert('Error', `Could not add channel: ${error.message || error.error_description || "Unknown error"}`);
@@ -270,7 +358,7 @@ function Dashboard() {
       }
       
       // 3. Check if channel exists
-      const channelExists = channels.some(c => c.id === videoDetails.channelId);
+      const channelExists = channels.find(c => c.id === videoDetails.channelId);
       
       if (!channelExists) {
         // Add Channel
@@ -282,34 +370,50 @@ function Dashboard() {
           uploads_playlist_id: channelDetails.uploadsPlaylistId,
           visible: true,
           category_id: null,
-          user_id: user.id
+          user_id: user.id,
+          cached_videos: [],
+          last_synced_at: null
         };
 
         const { error } = await supabase.from('channels').insert([newChannel]);
         if (error) throw error;
         
-        setChannels(prev => [...prev, { ...newChannel, categoryId: null }]);
+        // Seed new channel cache
+        const initialVideos = await fetchVideos(YOUTUBE_API_KEY, newChannel.uploads_playlist_id);
+        await supabase.from('channels').update({
+           cached_videos: initialVideos,
+           last_synced_at: new Date().toISOString()
+        }).eq('id', newChannel.id);
+
+        setChannels(prev => [...prev, { 
+          ...newChannel, 
+          categoryId: null,
+          cachedVideos: initialVideos,
+          lastSyncedAt: new Date().toISOString()
+        }]);
+
+        const merged = [...videos, ...initialVideos].sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+        setVideos(merged);
+        localStorage.setItem('bt_videos_cache', JSON.stringify(merged));
       }
 
-      // 4. Save Video
-      const newVideo = {
-        ...videoDetails,
-      };
+      // 4. Save Video state (Saved: true)
+      await updateVideoState(videoDetails.id, { saved: true });
       
+      // Ensure the specifically added video is in the main list
       setVideos(prev => {
-        if (prev.some(v => v.id === newVideo.id)) return prev;
-        return [...prev, newVideo].sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+        if (prev.some(v => v.id === videoDetails.id)) return prev;
+        const updated = [...prev, videoDetails].sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+        localStorage.setItem('bt_videos_cache', JSON.stringify(updated));
+        return updated;
       });
 
-      // 5. Mark as Saved
-      await updateVideoState(newVideo.id, { saved: true });
-      
       showConfirm({
         title: 'Success',
         message: `Video "${videoDetails.title}" added and saved! ${!channelExists ? `Channel "${videoDetails.channelTitle}" was also added to your list.` : ''}`,
         confirmText: 'Watch Now',
         cancelText: 'OK',
-        onConfirm: () => setSelectedVideo(newVideo)
+        onConfirm: () => setSelectedVideo(videoDetails)
       });
 
     } catch (error) {
@@ -418,11 +522,16 @@ function Dashboard() {
       saved: newState.saved || false,
       deleted: newState.deleted || false,
       summary: newState.summary,
+      custom_title: newState.customTitle,
       last_updated: new Date().toISOString(),
       user_id: user.id
     });
 
     if (error) console.error("Error updating video state:", error);
+  };
+
+  const updateTitle = (videoId, newTitle) => {
+    updateVideoState(videoId, { customTitle: newTitle });
   };
 
   const toggleSeen = (videoId) => {
@@ -495,6 +604,14 @@ function Dashboard() {
       );
     }
 
+    // Override title with customTitle if it exists and is saved
+    filtered = filtered.map(v => {
+      if (videoStates[v.id]?.customTitle) {
+        return { ...v, title: videoStates[v.id].customTitle, originalTitle: v.title };
+      }
+      return v;
+    });
+
     return filtered;
   }, [videos, soloChannelIds, soloCategoryIds, searchQuery, channels, videoStates]); // Added videoStates dependency
 
@@ -532,7 +649,8 @@ function Dashboard() {
     categories,
     channels,
     onVideoClick: (video) => setSelectedVideo(video),
-    onViewSummary: (video) => handleViewSummary(video)
+    onViewSummary: (video) => handleViewSummary(video),
+    onUpdateTitle: updateTitle
   };
 
   const handleViewSummary = async (video) => {
@@ -575,9 +693,17 @@ function Dashboard() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-white dark:bg-black text-gray-900 dark:text-gray-300 font-sans transition-colors duration-200">
-      {/* Left Column: Explorer (Collapsible) */}
-      <div className={`${isSidebarCollapsed ? 'w-20' : 'w-80'} h-full border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out flex-shrink-0`}>
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-white dark:bg-black text-gray-900 dark:text-gray-300 font-sans transition-colors duration-200">
+      {/* Quota Error Banner */}
+      {quotaError && (
+        <div className="bg-red-500/10 border-b border-red-500/20 text-red-500 p-3 text-center text-sm font-medium animate-in fade-in slide-in-from-top duration-500">
+          ⚠️ YouTube API Quota Exceeded. Videos will refresh automatically once the limit resets (usually at Midnight Pacific Time).
+        </div>
+      )}
+
+      <div className="flex h-full w-full overflow-hidden">
+        {/* Left Column: Explorer (Collapsible) */}
+        <div className={`${isSidebarCollapsed ? 'w-20' : 'w-80'} h-full border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out flex-shrink-0`}>
         <SettingsPanel 
           channels={channels} 
           onAddChannel={addChannel} 
@@ -604,36 +730,64 @@ function Dashboard() {
       </div>
 
       {/* Main Content Area (Expands to fill space) */}
-      <div className="flex-1 flex h-full min-w-0">
-        {/* Middle Column: Today */}
-        <div className="flex-1 h-full border-r border-gray-200 dark:border-gray-800 min-w-0">
-          <VideoColumn 
-            title="Today" 
-            videos={todayVideos} 
-            emptyMessage="No videos today"
-            loading={loading}
-            showBin={true}
-            showSaved={false}
-            searchQuery={searchQuery}
-            {...commonProps}
-          />
-        </div>
+      <div className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-[#09090b]">
+        {/* Main Header */}
+        <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#09090b]">
+          <div className="flex items-center gap-4">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Feed</h2>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                // Force sync by clearing timestamps in local state
+                setChannels(prev => prev.map(c => ({ ...c, lastSyncedAt: 0 })));
+              }}
+              disabled={loading}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors border border-gray-200 dark:border-zinc-700 disabled:opacity-50"
+              title="Force check for new videos"
+            >
+              <div className={loading ? "animate-spin" : ""}>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </div>
+              {loading ? 'Refreshing...' : 'Refresh Feed'}
+            </button>
+          </div>
+        </header>
 
-        {/* Right Column: Past 7 Days */}
-        <div className="flex-1 h-full min-w-0">
-          <VideoColumn 
-            title="Past 7 Days" 
-            videos={pastVideos} 
-            emptyMessage="No recent videos"
-            loading={loading}
-            showBin={false}
-            showSaved={false} // Changed to false
-            searchQuery={searchQuery} // Pass for highlighting if we want, or just to trigger updates
-            {...commonProps}
-          />
+        <div className="flex-1 flex min-w-0 overflow-hidden">
+          {/* Middle Column: Today */}
+          <div className="flex-1 h-full border-r border-gray-200 dark:border-gray-800 min-w-0">
+            <VideoColumn 
+              title="Today" 
+              videos={todayVideos} 
+              emptyMessage="No videos today"
+              loading={loading}
+              showBin={true}
+              showSaved={false}
+              searchQuery={searchQuery}
+              {...commonProps}
+            />
+          </div>
+
+          {/* Right Column: Past 7 Days */}
+          <div className="flex-1 h-full min-w-0">
+            <VideoColumn 
+              title="Past 7 Days" 
+              videos={pastVideos} 
+              emptyMessage="No recent videos"
+              loading={loading}
+              showBin={false}
+              showSaved={false} // Changed to false
+              searchQuery={searchQuery} // Pass for highlighting if we want, or just to trigger updates
+              {...commonProps}
+            />
+          </div>
         </div>
       </div>
-
+    </div>
 
       <AnimatePresence>
         {selectedVideo && (

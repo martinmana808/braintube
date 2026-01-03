@@ -14,17 +14,22 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkSchema() {
-  const { data, error } = await supabase.from('video_metadata').select('*').limit(1);
+  const videoId = '7ylRUF2uEpA';
+  console.log(`Checking metadata for ${videoId}...`);
+  const { data, error } = await supabase
+    .from('video_metadata')
+    .select('summary, tags')
+    .eq('video_id', videoId);
+    
   if (error) {
-    console.error('Error:', error);
+    console.error('Error with specific query:', error);
   } else {
-    console.log('Data:', data);
-    if (data.length > 0) {
-      console.log('Keys:', Object.keys(data[0]));
-    } else {
-      console.log('Table is empty, cannot infer schema easily.');
-    }
+    console.log('Specific query success. Data:', data);
   }
+  
+  // Also try to list ALL data to see if anything exists
+  const { data: allData } = await supabase.from('video_metadata').select('*');
+  console.log('All data rows:', allData?.length || 0);
 }
 
 checkSchema();

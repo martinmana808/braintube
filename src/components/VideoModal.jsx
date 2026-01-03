@@ -33,7 +33,7 @@ const VideoModal = ({ video, onClose, state, onToggleSeen, onToggleSaved, onDele
         .from('video_metadata')
         .select('summary, tags')
         .eq('video_id', video.id)
-        .single();
+        .maybeSingle();
       
       if (data) {
         if (data.summary) setSummary(data.summary);

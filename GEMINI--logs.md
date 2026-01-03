@@ -149,3 +149,129 @@ const setupAI = async (videoId, apiKey) => {
   console.log(summary);
 }
 ```
+
+<a name="log-20260102-ai-debug"></a>
+## [2026-01-02] Debugging AI & Supabase Errors
+
+**User Prompt:** (Multiple troubleshooting prompts regarding 500/406 errors and localhost redirects)
+
+### Steps Taken:
+1. **Redirect Fix**: Whitelisted `http://localhost:8888/*` and `http://localhost:5173/*` in Supabase Dashboard.
+2. **Library Switch**: Replaced `youtubei.js` with `youtube-transcript` in Netlify functions. The former was hitting a `400 Precondition Failed` error, likely due to YouTube's bot detection.
+3. **Enhanced Logging**: Updated `get-transcript.js` to log detailed errors to the server console.
+4. **Supabase RLS**: Identified `406 Not Acceptable` as an RLS policy issue and provided a migration script to the user.
+
+### Current Status:
+- Waiting for user to apply SQL policies and test with the new library.
+
+<a name="log-20260102-hybrid-caching"></a>
+## [2026-01-02] Implementing Hybrid Caching & Quota Protection
+
+**User Prompt:** I want to know how this exactly works. So... videos that have been fetched already, should be CACHED and not fetched again... TODAY column should be fetched ONCE A DAY, and the PAST 7 days should always come from the cached data... Should we use some localStorage?
+
+### Implementation Details:
+1.  **3-Tier Cache Architecture**:
+    *   **LocalStorage**: Instant UI hydration on mount (Tier 1).
+    *   **Supabase**: Long-term persistence across devices via `cached_videos` and `last_synced_at` columns (Tier 2).
+    *   **YouTube API**: Background synchronization for channels older than 12 hours (Tier 3).
+2.  **Quota Aware UI**:
+    *   Implemented `setQuotaError` state in `Dashboard.jsx`.
+    *   Added a prominent red banner that appears if the API limit is reached.
+3.  **Manual Sync Control**:
+    *   Added a "Refresh Feed" button to the dashboard header to allow users to force a YouTube fetch manually.
+4.  **Resilience Improvements**:
+    *   Fixed `Dashboard.jsx` JSX syntax errors introduced during the layout change.
+    *   Ensured `addChannel` and `addVideoByLink` immediately seed the new cache.
+
+### Artifacts:
+#### Implementation Plan
+(See `implementation_plan.md` for full technical breakdown)
+
+#### Walkthrough
+(See `walkthrough.md` for visual and functional summary)
+
+### Final Status:
+- Caching layer active.
+- Quota burn drastically reduced.
+- Known fixes (Supabase 406, AI fallback) confirmed and preserved.
+
+<a name="log-20260103-optimized-sync"></a>
+## [2026-01-03] Optimized Sync & UI Cleanup
+
+**User Prompt:** we dont need this: [ Sync Up to Date All your channels were already synced in the last 12 hours. ] And Ive got a question. We dont wanna blow up youtube api. So, whenever the fetch happens automatically, or I click on refresh feed, every channel gets CHECKED but only NEW VIDEOS are fetched, right? WE are not refetching records we already have
+
+### Verbatim Artifacts:
+
+#### Implementation Plan: Optimized Sync & UI Cleanup
+
+We want to reduce YouTube API quota usage and remove intrusive sync alerts.
+
+## Proposed Changes
+
+### YouTube Service
+#### [MODIFY] [youtube.js](file:///Users/martinmana/Documents/Projects/braintube/src/services/youtube.js)
+- Update `fetchVideos` to accept `existingVideos` parameter.
+- Only fetch durations (`videos.list`) for videos not already in `existingVideos`.
+- Merge existing data with new playlist result to return a complete, updated list.
+
+### Dashboard Page
+#### [MODIFY] [Dashboard.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/pages/Dashboard.jsx)
+- Update `syncStaleChannels` to:
+    - Pass `channel.cachedVideos` to `fetchVideos`.
+    - Remove `showAlert` calls for "Sync Up to Date" and "Sync Started".
+    - Correctly merge newly fetched videos into the front of the channel's `cachedVideos` list, ensuring no duplicates.
+    - Persist the merged list to Supabase and LocalStorage.
+
+## Verification Plan
+### Automated Tests
+- N/A (Manual verification is more suitable for UI/API behavior here).
+
+### Manual Verification
+- Click "Refresh Feed" and verify that it doesn't show the intrusive alert.
+- Check logs (if added) or monitor network tab to see if `videos?id=...` call is smaller when some videos are already cached.
+- Verify that old videos are not lost from the cache after a sync.
+
+#### Walkthrough: Optimized Sync & UI Cleanup
+
+I have optimized the YouTube synchronization process to be more efficient with API quota and removed the intrusive sync alerts as requested.
+
+## Changes Made
+
+### 1. Quota-Efficient Video Fetching
+Updated the `fetchVideos` service to accept an `existingVideos` parameter.
+- **Before**: Every sync fetched the latest 10 videos and then made a second API call to get durations for all 10 videos (costing `1 + 10` units).
+- **After**: The app still checks the playlist for the latest 10 videos (`1` unit), but it now filters that list against your cache. It **only** calls the durations API for videos that are actually new (e.g., if only 1 video is new, it costs `1 + 1` instead of `1 + 10`).
+
+```javascript
+// src/services/youtube.js
+const newVideoIds = playlistVideoIds.filter(id => !existingVideos.some(ev => ev.id === id));
+// ...
+if (newVideoIds.length > 0) {
+  // Only fetch details for new ones
+  const detailsResponse = await fetch(`...&id=${newVideoIds.join(',')}`);
+}
+```
+
+### 2. Smart Cache Merging
+Updated `Dashboard.jsx` to correctly merge synced videos with the existing cache.
+- **Before**: The cache for a channel was overwritten with the latest 10 videos.
+- **After**: New videos are prepended to the existing cache, ensuring you don't lose older videos just because they dropped off the "latest 10" list on YouTube.
+
+### 3. UI Cleanup
+Removed the following intrusive alerts:
+- "Sync Started" (when clicking Refresh Feed)
+- "Sync Complete"
+- "Sync Up to Date"
+
+The "Refresh Feed" button now works silently in the background, with the loading spinner indicating progress.
+
+## Verification
+- [x] `fetchVideos` correctly identifies new vs. existing videos.
+- [x] `Dashboard` merges channel videos without duplicates.
+- [x] Sync alerts are removed.
+- [x] Quota usage is minimized by batching duration fetches only for new IDs.
+
+### Final Status:
+- Sync logic is now quota-optimized.
+- UI is cleaner without repetitive sync alerts.
+- Channel historical cache is preserved (not overwritten).

@@ -11,3 +11,4 @@
 - Ai to create chapters in timeline
 - components
 - replace toggle theme for SUN MOON
+- Los botones en la card de video en la lista deberian aparecer solo on hover. Lo que aparecería siempre son los corazoncitos si fueron guardados (top corner)
