@@ -9,6 +9,22 @@ jobs:
   ping_supabase:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug Secrets
+        env:
+          URL: ${{ secrets.SUPABASE_URL }}
+          KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$URL" ]; then
+            echo "DEBUG_STATUS: SUPABASE_URL is EMPTY"
+          else
+            echo "DEBUG_STATUS: SUPABASE_URL is SET (not empty)"
+          fi
+          if [ -z "$KEY" ]; then
+            echo "DEBUG_STATUS: SUPABASE_ANON_KEY is EMPTY"
+          else
+            echo "DEBUG_STATUS: SUPABASE_ANON_KEY is SET (not empty)"
+          fi
+
       - name: Ping Supabase URL
         run: |
           curl -f -i -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
