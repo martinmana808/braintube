@@ -9,24 +9,10 @@ jobs:
   ping_supabase:
     runs-on: ubuntu-latest
     steps:
-      - name: Debug Secrets
-        env:
-          URL: ${{ secrets.SUPABASE_URL }}
-          KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      - name: Ping Supabase
         run: |
-          if [ -z "$URL" ]; then
-            echo "DEBUG_STATUS: SUPABASE_URL is EMPTY"
-          else
-            echo "DEBUG_STATUS: SUPABASE_URL is SET (not empty)"
-          fi
-          if [ -z "$KEY" ]; then
-            echo "DEBUG_STATUS: SUPABASE_ANON_KEY is EMPTY"
-          else
-            echo "DEBUG_STATUS: SUPABASE_ANON_KEY is SET (not empty)"
-          fi
-
-      - name: Ping Supabase URL
-        run: |
-          curl -f -i -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          # We don't use -f because we want to accept 401/403 errors as "success" (server is up).
+          # Hitting the endpoint is enough to reset the 7-day inactivity timer.
+          curl -v -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
           -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
           "${{ secrets.SUPABASE_URL }}/rest/v1/channels?select=count&limit=1"
