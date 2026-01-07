@@ -379,3 +379,19 @@ The server is active and listening for connections.
 #### Status: Manual Verification Required
 Since I cannot access the browser, I recommend verifying the application manually by navigating to [http://localhost:5175/](http://localhost:5175/) in your browser.
 
+<a name="log-20260107-ai-documentation"></a>
+## [2026-01-07] AI Implementation Documentation
+
+**User Prompt:** Can you explain how we are using ai and what are we using and how we have implemented it? I need to make a new app that needs ai, and i want it to know options. please make a file called ai_explanation_260107.md
+
+### Verbatim Artifacts:
+
+#### AI Explanation Document
+(See `ai_explanation_260107.md` for full text)
+
+## Summary of Work
+- Analyzed `src/services/ai.js` and `netlify/functions/get-transcript.js`.
+- Identified specific technology stack: Groq API (Llama 3.3) and Custom Netlify Scraper (Deep Scraping).
+- Created `ai_explanation_260107.md` detailing architecture and providing options for new apps.
+
+
