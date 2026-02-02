@@ -395,3 +395,72 @@ Since I cannot access the browser, I recommend verifying the application manuall
 - Created `ai_explanation_260107.md` detailing architecture and providing options for new apps.
 
 
+
+<a name="log-20260202-sync-loop-fix"></a>
+## [2026-02-02] Fix Infinite Sync Loop
+
+**User Prompt:** I loaded this project after a long time. My supabase project was paused. So i resumed it. but then it kept loading forever the videos and channels. loaded, flushed, loaded again, in a loop. forever. so i closed the page to not blow up my youtube api. here's the console for you to see whats goging on
+
+### Verbatim Artifacts:
+
+#### Implementation Plan
+
+# Fix Infinite Sync Loop
+
+## Goal Description
+The application was entering an infinite loop of "Syncing stale channel" actions upon loading. This was caused by the synchronization logic in `Dashboard.jsx` being inside a `useEffect` that depended on `channels`. When a channel was synced, `setChannels` was called, triggering the `useEffect` again, and restarting the sync process.
+
+## User Review Required
+None. This is a critical bug fix.
+
+## Proposed Changes
+### src/pages/Dashboard.jsx
+#### [MODIFY] [Dashboard.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/pages/Dashboard.jsx)
+- Import `useRef` from 'react'.
+- Create `isSyncingRef` to track synchronization status.
+- Wrap the `syncStaleChannels` logic in a check for `isSyncingRef.current`.
+- Use `try/finally` to ensure `isSyncingRef.current` is reset to `false` even if errors occur.
+
+## Verification Plan
+### Automated Tests
+- None available for this UI behavior.
+
+### Manual Verification
+- Observe the browser console logs.
+- Expected behavior: "Syncing stale channel" messages should appear once for each stale channel, then stop. "Dashboard: fetchData started" should not cycle indefinitely.
+
+#### Walkthrough
+
+# Walkthrough - Sync Loop Fix
+
+I have fixed the infinite synchronization loop in `Dashboard.jsx`.
+
+## Changes
+### Dashboard.jsx
+
+I introduced a `useRef` lock (`isSyncingRef`) to prevent the `syncStaleChannels` function from running concurrently or restarting while a sync is already in progress.
+
+```javascript
+  const isSyncingRef = useRef(false);
+
+  // ... inside useEffect ...
+    const syncStaleChannels = async () => {
+      // Prevent concurrent syncs
+      if (isSyncingRef.current) return;
+      isSyncingRef.current = true;
+
+      try {
+          // ... existing sync logic ...
+      } finally {
+        isSyncingRef.current = false;
+      }
+    };
+```
+
+## Verification Results
+### Automated Tests
+- N/A
+
+### Manual Verification
+- The infinite loop in the console should be resolved.
+- Channels will still sync when stale, but only one pass will occur at a time.

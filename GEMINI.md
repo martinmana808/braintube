@@ -5,6 +5,10 @@ BrainTube is a curated YouTube experience allowing users to organize channels an
 **Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtubei.js.
 
 ## History
+### [2026-02-02] Fix Infinite Sync Loop | [Technical Details](./GEMINI--logs.md#log-20260202-sync-loop-fix)
+- Identified and fixed an infinite synchronization loop in `Dashboard.jsx`.
+- Implemented `useRef` based locking to prevent recursive effect triggers.
+
 ### [2026-01-07] AI Implementation Documentation | [Technical Details](./GEMINI--logs.md#log-20260107-ai-documentation)
 - Created `ai_explanation_260107.md` detailing Groq and Custom Scraper implementation.
 - Analyzed and documented the "Deep Scraping" strategy used in Netlify functions.

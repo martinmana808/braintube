@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { isToday, isWithinInterval, subDays, parseISO } from 'date-fns';
 import VideoColumn from '../components/VideoColumn';
 import SettingsPanel from '../components/SettingsPanel';
@@ -200,89 +200,100 @@ function Dashboard() {
     }
   };
 
+  const isSyncingRef = useRef(false);
+
   // Fetch Data (Smart Sync)
   useEffect(() => {
     if (!YOUTUBE_API_KEY || channels.length === 0) return;
 
     const syncStaleChannels = async () => {
-      // Don't start sync if quota error is already active
-      if (quotaError) return;
+      // Prevent concurrent syncs
+      if (isSyncingRef.current) return;
+      isSyncingRef.current = true;
 
-      // Strict Hourly Sync: Max 1 sync per hour slot
-      // We check if the lastSyncedAt timestamp falls within the CURRENT hour's window.
-      // e.g. If now is 10:45, the window is 10:00:00 - 10:59:59.
-      // If last sync was at 09:55, it's outside the window -> SYNC.
-      // If last sync was at 10:05, it's inside the window -> SKIP.
-      
-      const now = new Date();
-      const currentHourStart = new Date(now);
-      currentHourStart.setMinutes(0, 0, 0); // Reset to start of the hour
-      const currentHourStartMs = currentHourStart.getTime();
+      try {
+        // Don't start sync if quota error is already active
+        if (quotaError) return;
 
-      const activeChannels = channels.filter(c => c.visible !== false);
-      
-      let updatedAny = false;
-      let runningVideos = [...videos];
-
-      for (const channel of activeChannels) {
-        const lastSynced = channel.lastSyncedAt ? new Date(channel.lastSyncedAt).getTime() : 0;
+        // Strict Hourly Sync: Max 1 sync per hour slot
+        // We check if the lastSyncedAt timestamp falls within the CURRENT hour's window.
+        // e.g. If now is 10:45, the window is 10:00:00 - 10:59:59.
+        // If last sync was at 09:55, it's outside the window -> SYNC.
+        // If last sync was at 10:05, it's inside the window -> SKIP.
         
-        // Check if lastSynced is BEFORE the start of the current hour
-        // AND if we haven't already hit quota error
-        const isStale = lastSynced < currentHourStartMs;
+        const now = new Date();
+        const currentHourStart = new Date(now);
+        currentHourStart.setMinutes(0, 0, 0); // Reset to start of the hour
+        const currentHourStartMs = currentHourStart.getTime();
+
+        const activeChannels = channels.filter(c => c.visible !== false);
         
-        if ((isStale || channel.cachedVideos.length === 0) && !quotaError) {
-          console.log(`Syncing stale channel: ${channel.name}`);
-          try {
-            setLoading(true);
-            const latestVideos = await fetchVideos(
-              YOUTUBE_API_KEY, 
-              channel.uploads_playlist_id || channel.uploadsPlaylistId,
-              channel.cachedVideos
-            );
-            
-            // Merge with existing cache for this channel
-            const latestIds = new Set(latestVideos.map(v => v.id));
-            const mergedChannelVideos = [
-              ...latestVideos, 
-              ...channel.cachedVideos.filter(v => !latestIds.has(v.id))
-            ];
+        let updatedAny = false;
+        let runningVideos = [...videos];
 
-            // Update Supabase Cache
-            await supabase.from('channels').update({
-              cached_videos: mergedChannelVideos,
-              last_synced_at: new Date().toISOString()
-            }).eq('id', channel.id);
+        for (const channel of activeChannels) {
+          const lastSynced = channel.lastSyncedAt ? new Date(channel.lastSyncedAt).getTime() : 0;
+          
+          // Check if lastSynced is BEFORE the start of the current hour
+          // AND if we haven't already hit quota error
+          const isStale = lastSynced < currentHourStartMs;
+          
+          if ((isStale || channel.cachedVideos.length === 0) && !quotaError) {
+            console.log(`Syncing stale channel: ${channel.name}`);
+            try {
+              setLoading(true);
+              const latestVideos = await fetchVideos(
+                YOUTUBE_API_KEY, 
+                channel.uploads_playlist_id || channel.uploadsPlaylistId,
+                channel.cachedVideos
+              );
+              
+              // Merge with existing cache for this channel
+              const latestIds = new Set(latestVideos.map(v => v.id));
+              const mergedChannelVideos = [
+                ...latestVideos, 
+                ...channel.cachedVideos.filter(v => !latestIds.has(v.id))
+              ];
 
-            // Update running main videos list (the global state)
-            const others = runningVideos.filter(v => v.channelId !== channel.id);
-            runningVideos = [...others, ...mergedChannelVideos].sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-            
-            setVideos(runningVideos);
-            localStorage.setItem('bt_videos_cache', JSON.stringify(runningVideos));
-            
-            // Also update the channel state itself so subsequent iterations have the new cache
-            setChannels(prev => prev.map(c => c.id === channel.id ? { 
-              ...c, 
-              cachedVideos: mergedChannelVideos, 
-              lastSyncedAt: new Date().toISOString() 
-            } : c));
+              // Update Supabase Cache
+              await supabase.from('channels').update({
+                cached_videos: mergedChannelVideos,
+                last_synced_at: new Date().toISOString()
+              }).eq('id', channel.id);
 
-            updatedAny = true;
-          } catch (error) {
-            console.error(`Error syncing channel ${channel.name}:`, error);
-            if (error.message === 'DAILY_QUOTA_EXCEEDED') {
-               setQuotaError(true);
-               break; 
+              // Update running main videos list (the global state)
+              const others = runningVideos.filter(v => v.channelId !== channel.id);
+              runningVideos = [...others, ...mergedChannelVideos].sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+              
+              setVideos(runningVideos);
+              localStorage.setItem('bt_videos_cache', JSON.stringify(runningVideos));
+              
+              // Also update the channel state itself so subsequent iterations have the new cache
+              setChannels(prev => prev.map(c => c.id === channel.id ? { 
+                ...c, 
+                cachedVideos: mergedChannelVideos, 
+                lastSyncedAt: new Date().toISOString() 
+              } : c));
+
+              updatedAny = true;
+            } catch (error) {
+              console.error(`Error syncing channel ${channel.name}:`, error);
+              if (error.message === 'DAILY_QUOTA_EXCEEDED') {
+                 setQuotaError(true);
+                 break; 
+              }
             }
           }
         }
-      }
 
-      if (updatedAny) {
-        setQuotaError(false);
+        if (updatedAny) {
+          setQuotaError(false);
+        }
+        setLoading(false);
+
+      } finally {
+        isSyncingRef.current = false;
       }
-      setLoading(false);
     };
 
     syncStaleChannels();
