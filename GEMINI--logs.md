@@ -478,3 +478,27 @@ The `SettingsPanel` component was attempting to access `collapsedCategories.has(
 - Added toggle handler.
 - Passed both as props to `SettingsPanel`.
 
+
+<a name="log-20260202-quota-tracking"></a>
+## [2026-02-02] Implement API Quota Tracking
+
+**User Prompt:** "Probably we can check how much of YouTube quota, and any other api we use, we have left... We could have this small, next to the FEED heading."
+
+### Implementation
+Implemented a system to track API usage per day (resets at midnight).
+- **Service:** Created  to manage  and  in LocalStorage.
+- **Instrumentation:** Updated  and  to increment these counters.
+- **UI:** Updated  to show usage stats: "YT: XXX/10k" and "AI: XXX toks".
+
+
+<a name="log-20260202-quota-tracking"></a>
+## [2026-02-02] Implement API Quota Tracking
+
+**User Prompt:** "Probably we can check how much of YouTube quota, and any other api we use, we have left... We could have this small, next to the FEED heading."
+
+### Implementation
+Implemented a system to track API usage per day (resets at midnight).
+- **Service:** Created `src/services/quota.js` to manage counters in LocalStorage (`bt_quota_youtube`, `bt_quota_groq`).
+- **Instrumentation:** Updated `youtube.js` and `ai.js` to increment these counters.
+- **UI:** Updated `Dashboard.jsx` to show usage stats: "YT: XXX/10k" and "AI: XXX toks".
+

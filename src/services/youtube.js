@@ -1,3 +1,5 @@
+import { incrementYoutube } from './quota';
+
 export const fetchChannelDetails = async (apiKey, identifier) => {
   let params = '';
   
@@ -45,6 +47,8 @@ export const fetchChannelDetails = async (apiKey, identifier) => {
     }
   }
 
+  // Cost: 1 unit (channels.list)
+  incrementYoutube(1);
   const response = await fetch(
     `https://www.googleapis.com/youtube/v3/channels?part=snippet,contentDetails&${params}&key=${apiKey}`
   );
@@ -72,6 +76,8 @@ export const fetchChannelDetails = async (apiKey, identifier) => {
 
     console.log(`Channel not found via direct lookup. Searching for: ${query}`);
     
+    // Cost: 100 units (search.list)
+    incrementYoutube(100);
     const searchResponse = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${encodeURIComponent(query)}&key=${apiKey}`
     );
@@ -99,6 +105,8 @@ export const fetchChannelDetails = async (apiKey, identifier) => {
 
 export const fetchVideos = async (apiKey, playlistId, existingVideos = []) => {
   // 1. Fetch Playlist Items
+  // Cost: 1 unit (playlistItems.list)
+  incrementYoutube(1);
   const response = await fetch(
     `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=10&key=${apiKey}`
   );
@@ -121,6 +129,8 @@ export const fetchVideos = async (apiKey, playlistId, existingVideos = []) => {
   // 3. Fetch Video Details (Duration) ONLY for new videos
   let durations = {};
   if (newVideoIds.length > 0) {
+    // Cost: 1 unit (videos.list)
+    incrementYoutube(1);
     const detailsResponse = await fetch(
       `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${newVideoIds.join(',')}&key=${apiKey}`
     );
@@ -170,6 +180,8 @@ export const fetchVideoDetails = async (apiKey, videoIdOrUrl) => {
 
   if (!videoId) throw new Error("Could not extract video ID");
 
+  // Cost: 1 unit (videos.list)
+  incrementYoutube(1);
   const response = await fetch(
     `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=${videoId}&key=${apiKey}`
   );

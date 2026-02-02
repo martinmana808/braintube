@@ -14,6 +14,7 @@ import ConfirmationModal from '../components/ConfirmationModal';
 // import SettingsModal from '../components/SettingsModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings } from 'lucide-react';
+import { getQuota } from '../services/quota';
 
 function Dashboard() {
   const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
@@ -37,6 +38,20 @@ function Dashboard() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [quotaError, setQuotaError] = useState(false);
   const [user, setUser] = useState(null);
+  const [quotaStats, setQuotaStats] = useState({ youtube: 0, groq: 0 });
+
+  useEffect(() => {
+    // Initial load
+    setQuotaStats(getQuota());
+
+    // Listen for updates
+    const handleQuotaUpdate = () => {
+      setQuotaStats(getQuota());
+    };
+
+    window.addEventListener('quota-updated', handleQuotaUpdate);
+    return () => window.removeEventListener('quota-updated', handleQuotaUpdate);
+  }, []);
 
   // Modal State
   const [modalConfig, setModalConfig] = useState({
@@ -771,10 +786,32 @@ function Dashboard() {
 
       {/* Main Content Area (Expands to fill space) */}
       <div className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-[#09090b]">
+
+
+  // ... inside render
         {/* Main Header */}
         <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#09090b]">
           <div className="flex items-center gap-4">
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Feed</h2>
+            
+            {/* Quota Stats */}
+            <div className="flex items-center gap-3 text-xs font-mono ml-4 opacity-70">
+              <div className="flex items-center gap-1.5" title="YouTube Data API Quota Usage (Daily Limit: 10,000)">
+                <div className={`w-1.5 h-1.5 rounded-full ${quotaStats.youtube > 9000 ? 'bg-red-500' : 'bg-green-500'}`} />
+                <span className="text-gray-600 dark:text-gray-400">
+                  YT: <span className="font-semibold text-gray-900 dark:text-gray-200">{quotaStats.youtube.toLocaleString()}</span>/10k
+                </span>
+              </div>
+              
+              <div className="w-px h-3 bg-gray-200 dark:bg-zinc-800" />
+              
+              <div className="flex items-center gap-1.5" title="Groq AI Token Usage (Daily)">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                <span className="text-gray-600 dark:text-gray-400">
+                  AI: <span className="font-semibold text-gray-900 dark:text-gray-200">{quotaStats.groq.toLocaleString()}</span> toks
+                </span>
+              </div>
+            </div>
           </div>
           
           <div className="flex items-center gap-3">

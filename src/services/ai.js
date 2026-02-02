@@ -1,3 +1,4 @@
+import { incrementGroq } from './quota';
 
 export const generateSummary = async (transcript, apiKey) => {
   const isFallback = transcript.includes('[FALLBACK CONTENT]');
@@ -41,6 +42,12 @@ export const generateSummary = async (transcript, apiKey) => {
   }
 
   const data = await response.json();
+  
+  // Track Quota
+  if (data.usage?.total_tokens) {
+    incrementGroq(data.usage.total_tokens);
+  }
+
   return data.choices[0].message.content;
 };
 
@@ -84,6 +91,12 @@ export const chatWithVideo = async (transcript, history, question, apiKey) => {
   }
 
   const data = await response.json();
+
+  // Track Quota
+  if (data.usage?.total_tokens) {
+    incrementGroq(data.usage.total_tokens);
+  }
+
   return data.choices[0].message.content;
 };
 
@@ -115,5 +128,11 @@ export const generateTags = async (title, channelTitle, apiKey) => {
   }
 
   const data = await response.json();
+
+  // Track Quota
+  if (data.usage?.total_tokens) {
+    incrementGroq(data.usage.total_tokens);
+  }
+
   return data.choices[0].message.content.trim().split(' ');
 };
