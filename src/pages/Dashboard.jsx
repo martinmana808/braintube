@@ -253,6 +253,8 @@ function Dashboard() {
           // AND if we haven't already hit quota error
           const isStale = lastSynced < currentHourStartMs;
           
+          console.log(`Checking ${channel.name}: LastSynced=${new Date(lastSynced).toLocaleTimeString()}, WindowStart=${new Date(currentHourStartMs).toLocaleTimeString()}, IsStale=${isStale}, CacheSize=${channel.cachedVideos.length}`);
+
           if ((isStale || channel.cachedVideos.length === 0) && !quotaError) {
             console.log(`Syncing stale channel: ${channel.name}`);
             try {

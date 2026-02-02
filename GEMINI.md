@@ -5,6 +5,11 @@ BrainTube is a curated YouTube experience allowing users to organize channels an
 **Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtubei.js.
 
 ## History
+### [2026-02-02] Documentation & Roadmap Update | [Technical Details](./GEMINI--logs.md#log-20260202-docs-and-todo)
+- Created `QUOTA-ECONOMY.md` strategy document.
+- Updated `README.md` and `TODO.md` with new priorities and system details.
+- Injected debug logging for sync logic analysis.
+
 ### [2026-02-02] Implement API Quota Tracking | [Technical Details](./GEMINI--logs.md#log-20260202-quota-tracking)
 - Implemented `quota.js` service to track daily YouTube (10k limit) and Groq usage.
 - Added real-time usage stats ("YT: 154/10k", "AI: 2048 toks") to Dashboard header.

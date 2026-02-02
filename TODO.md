@@ -4,6 +4,17 @@
 - categorie NO CATEGORY cannot be selected if it already has a categoryu. 
 - Los botones en la card de video en la lista deberian aparecer solo on hover.
 - agregar share nativo a braintube desde youtube
+- remove ai chat... 
+- fix ai summary
+- saved videos tiene que ser mas importante. es la clave. 
+- agregar notas a cada saved.
+- mejorar video modal botonera
+- mejorar video card botonera
+- add a SHORTS pill tqag to shorts
+
+# FIX
+- the github action that runs every 6 days and keeps thje project alive, needs to be fixed.
+
 
 # TO CONSIDER IN THE FUTURE (DO NOT ACTION YET)
 - Better UI

@@ -26,6 +26,13 @@ BrainTube integrates with Groq's Llama 3 to supercharge your viewing:
     -   **Trash**: Move irrelevant videos to the trash (they can be restored later).
     -   **Saved**: Bookmark videos to watch later.
 
+### 4. Economy & Quota Management
+BrainTube employs a "Supabase First" strategy to save on API costs:
+-   **Smart Caching**: Fetches are limited to strict 1-hour slots per channel. If data is fresh, it loads from the database (free).
+-   **Usage Tracking**: Monitor your daily API economies directly in the header:
+    -   **YT**: YouTube Data API units used (limit 10k/day).
+    -   **AI**: Groq tokens consumed.
+
 ## Getting Started
 
 ### 1. Setup

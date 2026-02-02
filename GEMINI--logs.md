@@ -502,3 +502,15 @@ Implemented a system to track API usage per day (resets at midnight).
 - **Instrumentation:** Updated `youtube.js` and `ai.js` to increment these counters.
 - **UI:** Updated `Dashboard.jsx` to show usage stats: "YT: XXX/10k" and "AI: XXX toks".
 
+
+<a name="log-20260202-docs-and-todo"></a>
+## [2026-02-02] Documentation & Roadmap Update
+
+**User Prompt:** "can we make a document that is called QUOTA-ECONOMY... where we CONSTANTLY document the way we are gonna handle storage"
+
+### Details
+- **New Artifact:** Created `QUOTA-ECONOMY.md` to document the "Supabase First" caching strategy and data flow.
+- **Debugging:** Injected console logs into `Dashboard.jsx` to trace the cache hit/miss logic during sync.
+- **Roadmap:** User manually updated `TODO.md` with new priorities (Saved videos importance, UI improvements).
+- **README:** Updated `README.md` to mention the new "Economy & Quota Management" features.
+
