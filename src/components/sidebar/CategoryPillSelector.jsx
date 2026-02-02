@@ -58,7 +58,7 @@ const CategoryPillSelector = ({ channel, categories, onSelect }) => {
                 onSelect(channel.id, null);
                 setIsOpen(false);
               }}
-              className="
+              className={`
                 w-full 
                 text-left 
                 px-3 
@@ -66,12 +66,12 @@ const CategoryPillSelector = ({ channel, categories, onSelect }) => {
                 text-[10px] 
                 font-mono 
                 uppercase 
-                text-gray-400 
                 hover:bg-gray-100 
                 dark:hover:bg-gray-800 
                 hover:text-gray-600 
                 dark:hover:text-gray-200
-              "
+                ${!currentCategory ? 'text-teal-600 dark:text-green-400 font-bold bg-teal-50 dark:bg-green-900/10' : 'text-gray-400'}
+              `}
             >
               No Category
             </button>

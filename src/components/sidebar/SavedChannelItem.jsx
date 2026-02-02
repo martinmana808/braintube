@@ -11,7 +11,9 @@ const SavedChannelItem = ({
   activeAddMode,
   setActiveAddMode,
   onAddVideoByLink,
-  YOUTUBE_API_KEY
+  YOUTUBE_API_KEY,
+  isSavedViewOpen,
+  onToggleSavedView
 }) => {
   return (
     <div className="flex flex-col mb-3">
@@ -25,7 +27,7 @@ const SavedChannelItem = ({
         <div className="saved-channel-item__info flex items-center gap-3 min-w-0">
             <div 
                 className="saved-channel-item__avatar-wrapper relative group/avatar cursor-pointer"
-                onClick={() => onToggleCategorySolo('saved-category')}
+                onClick={onToggleSavedView}
                 onMouseEnter={(e) => {
                     if (isCollapsed) {
                         const rect = e.currentTarget.getBoundingClientRect();
@@ -52,17 +54,17 @@ const SavedChannelItem = ({
                   border-2 
                   transition-all 
                   duration-300 
-                  ${soloCategoryIds.includes('saved-category')
+                  ${isSavedViewOpen
                       ? 'bg-teal-100 dark:bg-green-900/30 text-teal-600 dark:text-green-400 border-teal-500 dark:border-green-500 ring-2 ring-teal-500/30 dark:ring-green-500/30 shadow-[0_0_12px_rgba(20,184,166,0.4)] scale-110'
                       : 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 border-transparent opacity-100'
                   } 
                   ${
-                      ((soloChannelIds.length > 0 || soloCategoryIds.length > 0) && !soloCategoryIds.includes('saved-category'))
+                      ((soloChannelIds.length > 0 || soloCategoryIds.length > 0) && !isSavedViewOpen)
                           ? 'opacity-40 grayscale'
                           : ''
                   }
                 `}>
-                    <Heart className={`w-4 h-4 ${soloCategoryIds.includes('saved-category') ? 'fill-current' : ''}`} />
+                    <Heart className={`w-4 h-4 ${isSavedViewOpen ? 'fill-current' : ''}`} />
                 </div>
             </div>
             

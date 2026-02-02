@@ -5,6 +5,10 @@ BrainTube is a curated YouTube experience allowing users to organize channels an
 **Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtubei.js.
 
 ## History
+### [2026-02-02] YOLO Dashboard & Video Modal Enhancements | [Technical Details](./GEMINI--logs.md#log-20260202-yolo-dashboard)
+- Implemented **Carousel**, **Notes**, **Saved Column**, **Shorts Tag**, and **Hover Actions**.
+- Fixed **Auth Display**, **Category Bug**, and **AI Summary** error handling.
+- Removed **AI Chat** feature.
 ### [2026-02-02] Documentation & Roadmap Update | [Technical Details](./GEMINI--logs.md#log-20260202-docs-and-todo)
 - Created `QUOTA-ECONOMY.md` strategy document.
 - Updated `README.md` and `TODO.md` with new priorities and system details.

@@ -514,3 +514,29 @@ Implemented a system to track API usage per day (resets at midnight).
 - **Roadmap:** User manually updated `TODO.md` with new priorities (Saved videos importance, UI improvements).
 - **README:** Updated `README.md` to mention the new "Economy & Quota Management" features.
 
+
+<a name="log-20260202-yolo-dashboard"></a>
+## [2026-02-02] YOLO Dashboard & Video Modal Enhancements
+
+**User Prompt:** "execute all tasks listed in TODO.md... perform these tasks one by one... address all actionable items"
+
+**Implemented Features & Fixes:**
+1.  **Carousel**: Added `Previous/Next` navigation to `VideoModal` (Dashboard.jsx, VideoModal.jsx).
+2.  **Auth Fix**: Passed `user` and `onSignOut` to `SettingsPanel/UserProfile` to fix avatar display.
+3.  **Category Selection**: Improved visual feedback for "No Category" in `CategoryPillSelector` and verified logic.
+4.  **AI Chat Removal**: Nuked the AI Chat tab and logic from `VideoModal.jsx` to simplify the UI.
+5.  **AI Summary Fix**: Added error handling/feedback to `SummaryModal` and `Dashboard.jsx`.
+6.  **Saved Column**: Implemented a conditional "Saved Videos" column that appears when toggling "Saved" or saving a video.
+    - Added `isSavedColumnOpen` state in `Dashboard.jsx`.
+    - Updated `SavedChannelItem` to toggle this view.
+7.  **Notes System**: Re-introduced tabs in `VideoModal` ("Summary" & "Notes") and added `notes` state/persistence to `video_metadata` via Supabase.
+8.  **Hover Buttons**: Made actions on `VideoCard` visible only on hover.
+9.  **Shorts Tag**: Added visual badge for videos < 60s.
+
+**Files Modified:**
+- `src/pages/Dashboard.jsx` (Logic for Saved Column, Notes, Auth props)
+- `src/components/VideoModal.jsx` (Notes Tab, Carousel Buttons, Chat Removal)
+- `src/components/VideoCard.jsx` (Hover effects, Shorts tag)
+- `src/components/SettingsPanel.jsx` & `src/components/sidebar/*` (Prop drilling for Saved view)
+- `src/services/ai.js` (Verified logic)
+

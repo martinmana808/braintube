@@ -30,7 +30,9 @@ const SettingsPanel = ({
   onToggleSavedSelected,
   YOUTUBE_API_KEY,
   user,
-  onSignOut
+  onSignOut,
+  isSavedViewOpen,
+  onToggleSavedView
 }) => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('all'); // 'categories' or 'all'
@@ -197,6 +199,8 @@ const SettingsPanel = ({
                     setActiveAddMode={setActiveAddMode}
                     onAddVideoByLink={onAddVideoByLink}
                     YOUTUBE_API_KEY={YOUTUBE_API_KEY}
+                    isSavedViewOpen={isSavedViewOpen}
+                    onToggleSavedView={onToggleSavedView}
                 />
 
                 {channels.length > 0 ? renderChannelList(channels) : (

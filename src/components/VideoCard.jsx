@@ -57,6 +57,7 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
   const progressPercent = savedTime && totalSeconds ? (parseFloat(savedTime) / totalSeconds) * 100 : 0;
 
   const timeAgo = formatDistanceToNow(new Date(video.publishedAt), { addSuffix: true }).replace('about ', '');
+  const isShort = parseDurationToSeconds(video.duration) < 61;
 
   return (
     <div className={`
@@ -90,6 +91,9 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
           <span className="video-card__duration absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-mono px-1 rounded">
             {formatDuration(video.duration)}
           </span>
+        )}
+        {isShort && (
+           <span className="absolute top-1 right-1 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm z-10 tracking-wider">SHORTS</span>
         )}
         {/* Progress Bar */}
         {progressPercent > 0 && (
@@ -149,7 +153,7 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
       </div>
 
       {/* Actions Section */}
-      <div className="video-card__actions flex items-center px-3 border-l border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900/50">
+      <div className="video-card__actions flex items-center px-3 border-l border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <div className="flex gap-1">
           {!deleted && (
             <>

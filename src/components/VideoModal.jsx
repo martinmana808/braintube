@@ -1,24 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import YouTube from 'react-youtube';
-import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, MessageSquare, Send, Tag, Download, Share2, Check, Copy } from 'lucide-react';
+import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, Tag, Download, Share2, Check, Copy, ChevronLeft, ChevronRight, PenLine, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../services/supabase';
-import { generateSummary as generateSummaryService, chatWithVideo, generateTags } from '../services/ai';
+import { generateSummary as generateSummaryService, generateTags } from '../services/ai';
 import LZString from 'lz-string';
 
-const VideoModal = ({ video, onClose, state, onToggleSeen, onToggleSaved, onDelete }) => {
+const VideoModal = ({ video, onClose, state, onToggleSeen, onToggleSaved, onDelete, onUpdateNotes, onNext, onPrev, hasNext, hasPrev }) => {
   const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
   const { seen, saved, deleted } = state || {};
-  const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'chat' | 'tags'
+  const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'notes'
+  const [notesInput, setNotesInput] = useState(state.notes || '');
+
   const [summary, setSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [tags, setTags] = useState([]);
   const [loadingTags, setLoadingTags] = useState(false);
   const [transcript, setTranscript] = useState(null);
-  const [chatMessages, setChatMessages] = useState([]);
-  const [chatInput, setChatInput] = useState('');
-  const [loadingChat, setLoadingChat] = useState(false);
 
   const [error, setError] = useState(null);
 
@@ -51,11 +50,7 @@ const VideoModal = ({ video, onClose, state, onToggleSeen, onToggleSaved, onDele
     };
   }, [video.id]);
 
-  useEffect(() => {
-    if (activeTab === 'chat' && chatEndRef.current) {
-      chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [chatMessages, activeTab]);
+
 
   const fetchTranscript = async () => {
     if (transcript) return transcript;
@@ -109,27 +104,7 @@ const VideoModal = ({ video, onClose, state, onToggleSeen, onToggleSaved, onDele
     }
   };
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!chatInput.trim() || loadingChat) return;
 
-    const userMessage = { role: 'user', content: chatInput };
-    setChatMessages(prev => [...prev, userMessage]);
-    setChatInput('');
-    setLoadingChat(true);
-
-    try {
-      const currentTranscript = await fetchTranscript();
-      const aiResponse = await chatWithVideo(currentTranscript, chatMessages, userMessage.content, GROQ_API_KEY);
-      
-      setChatMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
-    } catch (err) {
-      console.error("Error chatting with video:", err);
-      setChatMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I encountered an error answering your question." }]);
-    } finally {
-      setLoadingChat(false);
-    }
-  };
 
 /*
   const handleGenerateTags = async () => {
@@ -235,8 +210,28 @@ This was created and copied in BrainTube`;
       >
         
         {/* Video Player Section */}
-        <div className="w-2/3 h-full bg-black flex items-center justify-center relative">
-           {/* Close button for mobile/if sidebar is collapsed? No, let's put it in sidebar header for desktop */}
+        <div className="w-2/3 h-full bg-black flex items-center justify-center relative group">
+           {/* Navigation Buttons */}
+           {hasPrev && (
+             <button 
+                onClick={(e) => { e.stopPropagation(); onPrev(); }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                title="Previous Video"
+             >
+                <ChevronLeft className="w-8 h-8" />
+             </button>
+           )}
+
+           {hasNext && (
+             <button 
+                onClick={(e) => { e.stopPropagation(); onNext(); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 bg-black/50 text-white rounded-full hover:bg-black/80 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                title="Next Video"
+             >
+                <ChevronRight className="w-8 h-8" />
+             </button>
+           )}
+
           <YouTube
             videoId={video.id}
             opts={{
@@ -343,47 +338,40 @@ This was created and copied in BrainTube`;
                 </button>
               </div>
 
+
+          
             {/* Tabs */}
-            <div className="flex ">
+            <div className="flex px-6 mt-4 border-b border-gray-200 dark:border-gray-800">
               <button
                 onClick={() => setActiveTab('summary')}
-                className={`flex-1 text-sm font-bold transition-colors relative ${activeTab === 'summary' ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'summary' ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
               >
                 <div className="flex items-center justify-center gap-2">
                   <Sparkles className="w-4 h-4" />
                   SUMMARY
                 </div>
-                
-              </button>
-              <button
-                onClick={() => setActiveTab('chat')}
-                className={`flex-1 text-sm font-bold transition-colors relative ${activeTab === 'chat' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  CHAT
-                </div>
-                
-              </button>
-              {/* 
-              <button
-                onClick={() => setActiveTab('tags')}
-                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'tags' ? 'text-purple-400' : 'text-gray-500 hover:text-gray-300'}`}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <Tag className="w-4 h-4" />
-                  TAGS
-                </div>
-                {activeTab === 'tags' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-400" />
+                {activeTab === 'summary' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500" />
                 )}
               </button>
-              */}
+              <button
+                onClick={() => setActiveTab('notes')}
+                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'notes' ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <PenLine className="w-4 h-4" />
+                  NOTES
+                </div>
+                {activeTab === 'notes' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
+                )}
+              </button>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar relative">
             {activeTab === 'summary' ? (
+
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2 text-green-500">
@@ -438,98 +426,26 @@ This was created and copied in BrainTube`;
                   </div>
                 )}
               </div>
-            ) : /* activeTab === 'tags' ? (
-              <div className="p-6">
-                {tags && tags.length > 0 ? (
-                  <div className="space-y-6">
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map((tag, idx) => (
-                        <span key={idx} className="px-3 py-1 bg-purple-900/30 text-purple-400 rounded-full text-sm font-medium border border-purple-900/50">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <button
-                      onClick={handleGenerateTags}
-                      disabled={loadingTags}
-                      className="text-xs text-gray-500 hover:text-gray-300 underline"
-                    >
-                      Regenerate Tags
-                    </button>
-                  </div>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-4 mt-10">
-                    <div className="bg-gray-900 p-4 rounded-full mb-4">
-                      <Tag className="w-8 h-8 text-purple-500" />
-                    </div>
-                    <h3 className="text-gray-200 font-bold mb-2">No Tags Yet</h3>
-                    <p className="text-gray-500 text-sm mb-6 max-w-xs">
-                      Generate smart tags based on the video title and channel.
-                    </p>
-                    <button
-                      onClick={handleGenerateTags}
-                      disabled={loadingTags}
-                      className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loadingTags ? (
-                        <>
-                          <Loader className="w-4 h-4 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Tag className="w-4 h-4" />
-                          Generate Tags
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : */ (
-              <div className="flex flex-col h-full">
-                <div className="flex-1 p-4 space-y-4">
-                  {chatMessages.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center text-gray-500 mt-10">
-                      <MessageSquare className="w-8 h-8 mb-3 opacity-50" />
-                      <p className="text-sm">Ask anything about this video.</p>
-                    </div>
-                  ) : (
-                    chatMessages.map((msg, idx) => (
-                      <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[85%] rounded-lg p-3 text-sm ${
-                          msg.role === 'user' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-800 text-gray-200'
-                        }`}>
-                          <ReactMarkdown>{msg.content}</ReactMarkdown>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                  <div ref={chatEndRef} />
-                </div>
-                
-                <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="Ask a question..."
-                      className="w-full bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg pl-4 pr-10 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-colors"
-                      disabled={loadingChat}
+
+
+            ) : (
+                <div className="p-6 h-full flex flex-col">
+                    <textarea 
+                        className="flex-1 w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-4 font-mono leading-relaxed"
+                        placeholder="Write your notes here..."
+                        value={notesInput}
+                        onChange={(e) => setNotesInput(e.target.value)}
                     />
-                    <button 
-                      type="submit"
-                      disabled={!chatInput.trim() || loadingChat}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {loadingChat ? <Loader className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </form>
-              </div>
+                    <div className="flex justify-end">
+                        <button
+                            onClick={() => onUpdateNotes(notesInput)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors"
+                        >
+                            <Save className="w-4 h-4" />
+                            Save Notes
+                        </button>
+                    </div>
+                </div>
             )}
           </div>
         </div>

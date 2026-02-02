@@ -4,7 +4,7 @@ import { X, Sparkles, Loader, Play, Copy, Download, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useState } from 'react';
 
-const SummaryModal = ({ video, summary, onClose, loading, onWatch }) => {
+const SummaryModal = ({ video, summary, onClose, loading, onWatch, error }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -115,6 +115,14 @@ ${summary || 'No summary available.'}
                 <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                   <Loader className="w-8 h-8 animate-spin mb-3" />
                   <p className="text-sm font-mono animate-pulse">Generating Summary...</p>
+                </div>
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-full mb-3">
+                    <Sparkles className="w-6 h-6 text-red-500" />
+                  </div>
+                  <h3 className="text-gray-900 dark:text-gray-200 font-bold mb-1">Summary Generation Failed</h3>
+                  <p className="text-red-500 text-sm max-w-xs">{error}</p>
                 </div>
               ) : (
                 <ReactMarkdown>{summary}</ReactMarkdown>

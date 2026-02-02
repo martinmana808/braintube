@@ -28,6 +28,7 @@ function Dashboard() {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [viewingSummaryVideo, setViewingSummaryVideo] = useState(null);
   const [generatingSummaryId, setGeneratingSummaryId] = useState(null);
+  const [summaryError, setSummaryError] = useState(null);
 
   const [categories, setCategories] = useState([]);
   const [soloChannelIds, setSoloChannelIds] = useState([]);
@@ -39,6 +40,7 @@ function Dashboard() {
   const [quotaError, setQuotaError] = useState(false);
   const [user, setUser] = useState(null);
   const [quotaStats, setQuotaStats] = useState({ youtube: 0, groq: 0 });
+  const [isSavedColumnOpen, setIsSavedColumnOpen] = useState(false);
 
   useEffect(() => {
     // Initial load
@@ -564,6 +566,7 @@ function Dashboard() {
       deleted: newState.deleted || false,
       summary: newState.summary,
       custom_title: newState.customTitle,
+      notes: newState.notes,
       last_updated: new Date().toISOString(),
       user_id: user.id
     });
@@ -590,6 +593,7 @@ function Dashboard() {
         
         // If older than 7 days (using a slightly generous buffer or exact comparison)
         // We want to warn if it's NOT in the "recent" window, i.e., older than 7 days.
+        
         if (publishedAt < cutoffDate) {
            showConfirm({
              title: "Unsave Video",
@@ -598,13 +602,16 @@ function Dashboard() {
              type: "danger",
              onConfirm: () => updateVideoState(videoId, { saved: !isCurrentlySaved })
            });
-           return;
+        } else {
+            updateVideoState(videoId, { saved: !isCurrentlySaved });
         }
       }
+    } else {
+        // Saving
+        updateVideoState(videoId, { saved: !isCurrentlySaved });
+        setIsSavedColumnOpen(true);
     }
-    updateVideoState(videoId, { saved: !isCurrentlySaved });
   };
-
   const deleteVideo = (videoId) => {
     updateVideoState(videoId, { deleted: !videoStates[videoId]?.deleted });
   };
@@ -696,6 +703,7 @@ function Dashboard() {
 
   const handleViewSummary = async (video) => {
     setViewingSummaryVideo(video);
+    setSummaryError(null);
 
     // If summary already exists, do nothing
     if (videoStates[video.id]?.summary) return;
@@ -722,10 +730,7 @@ function Dashboard() {
 
     } catch (err) {
       console.error("Error generating summary from listing:", err);
-      // Optionally show error in modal or toast
-      // For now, we might want to close the modal if it failed, or show error state in modal
-      // But SummaryModal currently only shows loading or content.
-      // Let's just log it for now.
+      setSummaryError(err.message || "Failed to generate summary");
     } finally {
       setGeneratingSummaryId(null);
     }
@@ -783,11 +788,15 @@ function Dashboard() {
           onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           collapsedCategories={collapsedCategories}
           toggleCategoryCollapse={toggleCategoryCollapse}
+          user={user}
+          onSignOut={handleSignOut}
+          isSavedViewOpen={isSavedColumnOpen}
+          onToggleSavedView={() => setIsSavedColumnOpen(!isSavedColumnOpen)}
         />
       </div>
 
       {/* Main Content Area (Expands to fill space) */}
-      <div className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-[#09090b]">
+      <div className={`flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-[#09090b] transition-all duration-300`}>
 
 
 
@@ -864,6 +873,22 @@ function Dashboard() {
               {...commonProps}
             />
           </div>
+
+          {/* Saved Column (Conditional) */}
+          {isSavedColumnOpen && (
+            <div className="flex-1 h-full min-w-0 border-l border-gray-200 dark:border-gray-800">
+               <VideoColumn 
+                title="Saved Videos" 
+                videos={videos.filter(v => videoStates[v.id]?.saved)} 
+                emptyMessage="No saved videos"
+                loading={loading}
+                showBin={false}
+                showSaved={true}
+                searchQuery={searchQuery}
+                {...commonProps}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -878,6 +903,17 @@ function Dashboard() {
             onToggleSeen={toggleSeen}
             onToggleSaved={toggleSaved}
             onDelete={deleteVideo}
+            onUpdateNotes={(note) => updateVideoState(selectedVideo.id, { notes: note })}
+            onNext={() => {
+              const idx = activeVideos.findIndex(v => v.id === selectedVideo.id);
+              if (idx < activeVideos.length - 1) setSelectedVideo(activeVideos[idx + 1]);
+            }}
+            onPrev={() => {
+              const idx = activeVideos.findIndex(v => v.id === selectedVideo.id);
+              if (idx > 0) setSelectedVideo(activeVideos[idx - 1]);
+            }}
+            hasNext={activeVideos.findIndex(v => v.id === selectedVideo.id) < activeVideos.length - 1}
+            hasPrev={activeVideos.findIndex(v => v.id === selectedVideo.id) > 0}
           />
         )}
       </AnimatePresence>
@@ -889,6 +925,7 @@ function Dashboard() {
             video={viewingSummaryVideo}
             summary={videoStates[viewingSummaryVideo.id]?.summary}
             loading={generatingSummaryId === viewingSummaryVideo.id}
+            error={summaryError}
             onClose={() => setViewingSummaryVideo(null)}
             onWatch={() => {
               setViewingSummaryVideo(null);

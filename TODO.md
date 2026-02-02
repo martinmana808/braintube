@@ -1,22 +1,22 @@
 # TODO
-- on big video modal, you should be able to go right next left previous like a carousel. 
-- settings and logout does not work. Instead of seeing my google user and avatar, I see a placeholder avatar and the username 'User'
+- On big video modal, you should be able to go right next left previous like a carousel. 
+- Settings and Logout does not work. Instead of seeing my google user and avatar, I see a placeholder avatar and the username 'User'
 - categorie NO CATEGORY cannot be selected if it already has a categoryu. 
-- Los botones en la card de video en la lista deberian aparecer solo on hover.
-- agregar share nativo a braintube desde youtube
-- remove ai chat... 
-- fix ai summary
-- saved videos tiene que ser mas importante. es la clave. 
-- agregar notas a cada saved.
-- mejorar video modal botonera
-- mejorar video card botonera
-- add a SHORTS pill tqag to shorts
+- Remove the ai chat
+- Fix the ai summary capability
+- Saved videos should have its own section (column) - But this one should only be seen when the user clicks on saved, or saves a video. 
+- Saved videos (each saved video) should have a section for notes.
+- Buttons in the video listing card should only appear on hover.
+- Shorts videos should have a SHORTS pill tag like the one YOUTUBE has.
 
-# FIX
+# FIX (DO NOT ACTION YET)
 - the github action that runs every 6 days and keeps thje project alive, needs to be fixed.
 
 
 # TO CONSIDER IN THE FUTURE (DO NOT ACTION YET)
+- mejorar video modal botonera
+- mejorar video card botonera
+- Could we have a native share from youtube to braintube? (like save video to braintube)
 - Better UI
 - Proper area for saved
 - ADD VIDEO should be a different hierarchy than add category and channel. Because that is not what the app is about. But it is a good feature to have. Probably it could show up in the SAVED VIDEOS panel, at the top. 
