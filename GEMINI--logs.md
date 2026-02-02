@@ -464,3 +464,17 @@ I introduced a `useRef` lock (`isSyncingRef`) to prevent the `syncStaleChannels`
 ### Manual Verification
 - The infinite loop in the console should be resolved.
 - Channels will still sync when stale, but only one pass will occur at a time.
+
+<a name="log-20260202-settings-panel-crash"></a>
+## [2026-02-02] Fix SettingsPanel Crash
+
+**User Prompt:** now it is stuck on 'fetching data'... react-dom_client.js?v=348f0620:20103 TypeError: Cannot read properties of undefined (reading 'has')
+
+### Details
+The `SettingsPanel` component was attempting to access `collapsedCategories.has()`, but the `collapsedCategories` prop was undefined. This state was missing from `Dashboard.jsx`.
+
+### Fix
+- Added `const [collapsedCategories, setCollapsedCategories] = useState(new Set());` to `Dashboard.jsx`.
+- Added toggle handler.
+- Passed both as props to `SettingsPanel`.
+

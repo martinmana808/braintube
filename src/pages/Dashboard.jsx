@@ -716,6 +716,20 @@ function Dashboard() {
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
+  const [collapsedCategories, setCollapsedCategories] = useState(new Set());
+
+  const toggleCategoryCollapse = (categoryId) => {
+    setCollapsedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-white dark:bg-black text-gray-900 dark:text-gray-300 font-sans transition-colors duration-200">
       {/* Quota Error Banner */}
@@ -750,6 +764,8 @@ function Dashboard() {
           onOpenHelp={() => setIsHelpOpen(true)}
           isCollapsed={isSidebarCollapsed}
           onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          collapsedCategories={collapsedCategories}
+          toggleCategoryCollapse={toggleCategoryCollapse}
         />
       </div>
 
