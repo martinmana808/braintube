@@ -788,7 +788,7 @@ function Dashboard() {
       <div className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-[#09090b]">
 
 
-  // ... inside render
+
         {/* Main Header */}
         <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#09090b]">
           <div className="flex items-center gap-4">
