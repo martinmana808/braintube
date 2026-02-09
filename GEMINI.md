@@ -5,6 +5,11 @@ BrainTube is a curated YouTube experience allowing users to organize channels an
 **Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtubei.js.
 
 ## History
+### [2026-02-09] New Features: Shorts, Notes, Saved Flow, & Filters | [Technical Details](./GEMINI--logs.md#log-20260209-new-features)
+- **Shorts**: Updated definition to **3 minutes** (180s) and added filter toggle.
+- **Notes**: Restricted to **saved videos**, with **unsave protection**.
+- **Saved Logic**: Videos now **move** to the Saved column and are hidden from Recents.
+- **Counters**: Added visual indicators for **Today** and **Past 7 Days** video counts per channel.
 ### [2026-02-02] YOLO Dashboard & Video Modal Enhancements | [Technical Details](./GEMINI--logs.md#log-20260202-yolo-dashboard)
 - Implemented **Carousel**, **Notes**, **Saved Column**, **Shorts Tag**, and **Hover Actions**.
 - Fixed **Auth Display**, **Category Bug**, and **AI Summary** error handling.

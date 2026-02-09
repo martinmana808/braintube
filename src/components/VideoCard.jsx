@@ -57,7 +57,7 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
   const progressPercent = savedTime && totalSeconds ? (parseFloat(savedTime) / totalSeconds) * 100 : 0;
 
   const timeAgo = formatDistanceToNow(new Date(video.publishedAt), { addSuffix: true }).replace('about ', '');
-  const isShort = parseDurationToSeconds(video.duration) < 61;
+  const isShort = parseDurationToSeconds(video.duration) <= 180;
 
   return (
     <div className={`

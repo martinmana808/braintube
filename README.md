@@ -20,11 +20,15 @@ BrainTube integrates with Groq's Llama 3 to supercharge your viewing:
 
 ### 3. Organization & Focus
 -   **Categories**: Group your channels (e.g., "Tech", "Science", "Music") to filter your feed.
--   **Solo Mode**: Want to focus? Click the **Eye icon** next to a channel in the settings to enter "Solo Mode". Your feed will instantly filter to show *only* videos from that channel.
+-   **Filters**:
+    -   **Duration**: Toggle between `ALL`, `SHORT` (≤ 3 mins), and `LONG` (> 3 mins) videos.
+    -   **Search**: Instantly filter videos by title or channel name.
+-   **Channel Stats**: Visual indicators in the sidebar show how many videos a channel released **Today** (green) and in the **Past 7 Days** (gray).
 -   **Progress Tracking**:
-    -   **Mark as Seen**: Hide videos you've watched or aren't interested in.
-    -   **Trash**: Move irrelevant videos to the trash (they can be restored later).
-    -   **Saved**: Bookmark videos to watch later.
+    -   **Mark as Seen**: Hide videos you've watched.
+    -   **Saved & Notes**: 
+        -   Save interesting videos to the dedicated **Saved Column** (they move out of your main feed).
+        -   Add personal **Notes** to any saved video via the video modal.
 
 ### 4. Economy & Quota Management
 BrainTube employs a "Supabase First" strategy to save on API costs:

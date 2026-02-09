@@ -9,8 +9,16 @@ import LZString from 'lz-string';
 
 const VideoModal = ({ video, onClose, state, onToggleSeen, onToggleSaved, onDelete, onUpdateNotes, onNext, onPrev, hasNext, hasPrev }) => {
   const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+  /* eslint-disable no-unused-vars */
   const { seen, saved, deleted } = state || {};
   const [activeTab, setActiveTab] = useState('summary'); // 'summary' | 'notes'
+  
+  useEffect(() => {
+    if (!saved && activeTab === 'notes') {
+        setActiveTab('summary');
+    }
+  }, [saved, activeTab]);
+
   const [notesInput, setNotesInput] = useState(state.notes || '');
 
   const [summary, setSummary] = useState(null);
@@ -354,18 +362,20 @@ This was created and copied in BrainTube`;
                   <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500" />
                 )}
               </button>
-              <button
-                onClick={() => setActiveTab('notes')}
-                className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'notes' ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <PenLine className="w-4 h-4" />
-                  NOTES
-                </div>
-                {activeTab === 'notes' && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
-                )}
-              </button>
+              {saved && (
+                  <button
+                    onClick={() => setActiveTab('notes')}
+                    className={`flex-1 pb-3 text-sm font-bold transition-colors relative ${activeTab === 'notes' ? 'text-blue-500 dark:text-blue-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <PenLine className="w-4 h-4" />
+                      NOTES
+                    </div>
+                    {activeTab === 'notes' && (
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />
+                    )}
+                  </button>
+              )}
             </div>
           </div>
 

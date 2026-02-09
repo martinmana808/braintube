@@ -32,7 +32,10 @@ const SettingsPanel = ({
   user,
   onSignOut,
   isSavedViewOpen,
-  onToggleSavedView
+  onToggleSavedView,
+  channelStats,
+  filterDuration,
+  setFilterDuration
 }) => {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('all'); // 'categories' or 'all'
@@ -100,6 +103,7 @@ const SettingsPanel = ({
         categories={categories}
         updateChannelCategory={updateChannelCategory}
         onRemoveChannel={onRemoveChannel}
+        stats={channelStats[channel.id]}
       />
     ));
   };
@@ -123,6 +127,33 @@ const SettingsPanel = ({
             onSearchChange={onSearchChange}
             searchInputRef={searchInputRef}
           />
+          
+          {/* Duration Filter */}
+          {!isCollapsed && (
+            <div className="flex gap-1 mb-4">
+                {['ALL', 'SHORT', 'LONG'].map(f => (
+                    <button
+                        key={f}
+                        onClick={() => setFilterDuration(f)}
+                        className={`
+                            flex-1 
+                            py-1 
+                            text-[10px] 
+                            font-bold 
+                            rounded 
+                            transition-colors 
+                            border 
+                            ${filterDuration === f 
+                                ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 border-gray-900 dark:border-gray-100' 
+                                : 'bg-transparent text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 border-gray-200 dark:border-gray-800 hover:border-gray-400'
+                            }
+                        `}
+                    >
+                        {f}
+                    </button>
+                ))}
+            </div>
+          )}
 
           <SidebarAddMenu 
             isCollapsed={isCollapsed}
@@ -228,6 +259,8 @@ const SettingsPanel = ({
                     setActiveAddMode={setActiveAddMode}
                     onAddVideoByLink={onAddVideoByLink}
                     YOUTUBE_API_KEY={YOUTUBE_API_KEY}
+                    isSavedViewOpen={isSavedViewOpen}
+                    onToggleSavedView={onToggleSavedView}
                 />
 
                 {/* Categories */}
@@ -249,6 +282,7 @@ const SettingsPanel = ({
                         updateChannelCategory={updateChannelCategory}
                         categories={categories}
                         setHoveredChannel={setHoveredChannel}
+                        channelStats={channelStats}
                     />
                 ))}
 

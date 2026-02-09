@@ -540,3 +540,35 @@ Implemented a system to track API usage per day (resets at midnight).
 - `src/components/SettingsPanel.jsx` & `src/components/sidebar/*` (Prop drilling for Saved view)
 - `src/services/ai.js` (Verified logic)
 
+
+<a name="log-20260209-new-features"></a>
+## [2026-02-09] New Feature Implementation: Shorts, Notes, Saved Flow, & Filters
+
+**User Prompt:** "Implement SHORTS tag update... Notes restriction... Channel Counters... Move Saved Videos logic... Filters"
+
+### Implementation Details
+
+#### 1. Shorts & Filters
+- **Updated Shorts Definition**: Changed threshold from 60s to **180s** (3 mins) in `VideoCard.jsx` and `Dashboard.jsx`.
+- **Duration Filter**: Added `ALL`, `SHORT`, and `LONG` filter buttons to `SettingsPanel.jsx`.
+- **Logic**: `Dashboard.jsx` now filters `activeVideos` based on duration state.
+
+#### 2. Notes & Saved Videos
+- **Restricted Notes**: `VideoModal.jsx` now hides the "Analysis/Notes" tab if the video is not saved.
+- **Unsave Protection**: Added a confirmation dialog if attempting to unsave a video that has notes.
+- **Saved Column Workflow**: 
+    - Saved videos are now **excluded** from "Today" and "Past 7 Days" columns.
+    - They appear exclusively in the "Saved Videos" column (which respects global Search/Duration filters).
+    - Fixed "Saved" category click behavior in `SettingsPanel.jsx`.
+
+#### 3. Channel Counters
+- **Visual Stats**: Added code to `Dashboard.jsx` to calculate video counts for "Today" and "Past 7 Days" per channel.
+- **UI**: Updated `ChannelRow.jsx` to display these counts as small pills (Green/Gray) next to the channel name.
+
+#### 4. Project Structure
+- **README.md**: Updated to reflect new features.
+
+### Artifacts
+- **[Walkthrough](./walkthrough.md)**: Updated with verification steps for new features.
+- **[Task List](./task.md)**: All relevant tasks marked complete.
+

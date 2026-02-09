@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { isToday, isWithinInterval, subDays, parseISO } from 'date-fns';
+import { parseDurationToSeconds } from '../utils/formatters';
 import VideoColumn from '../components/VideoColumn';
 import SettingsPanel from '../components/SettingsPanel';
 import { fetchChannelDetails, fetchVideos, fetchVideoDetails } from '../services/youtube';
@@ -40,7 +41,9 @@ function Dashboard() {
   const [quotaError, setQuotaError] = useState(false);
   const [user, setUser] = useState(null);
   const [quotaStats, setQuotaStats] = useState({ youtube: 0, groq: 0 });
+  // const [quotaStats, setQuotaStats] = useState({ youtube: 0, groq: 0 }); // REMOVED DUPLICATE
   const [isSavedColumnOpen, setIsSavedColumnOpen] = useState(false);
+  const [filterDuration, setFilterDuration] = useState('ALL'); // 'ALL', 'SHORT', 'LONG'
 
   useEffect(() => {
     // Initial load
@@ -586,13 +589,33 @@ function Dashboard() {
     const isCurrentlySaved = videoStates[videoId]?.saved;
     
     if (isCurrentlySaved) {
+      // Check for notes before unsaving
+      const hasNotes = videoStates[videoId]?.notes && videoStates[videoId]?.notes.trim().length > 0;
+
+      if (hasNotes) {
+          showConfirm({
+             title: "Unsave Video with Notes",
+             message: "This video has personal notes. If you unsave it, the notes might be lost or hidden. Are you sure?",
+             confirmText: "Unsave & Risk Notes",
+             type: "danger",
+             onConfirm: () => proceedUnsave(videoId)
+          });
+          return; 
+      }
+      
+      proceedUnsave(videoId);
+    } else {
+        // Saving
+        updateVideoState(videoId, { saved: !isCurrentlySaved });
+        setIsSavedColumnOpen(true);
+    }
+  };
+
+  const proceedUnsave = (videoId) => {
       const video = videos.find(v => v.id === videoId);
       if (video) {
         const publishedAt = parseISO(video.publishedAt);
         const cutoffDate = subDays(new Date(), 7);
-        
-        // If older than 7 days (using a slightly generous buffer or exact comparison)
-        // We want to warn if it's NOT in the "recent" window, i.e., older than 7 days.
         
         if (publishedAt < cutoffDate) {
            showConfirm({
@@ -600,25 +623,40 @@ function Dashboard() {
              message: "This video is older than 7 days. If you unsave it, it will be removed from your list permanently. Are you sure?",
              confirmText: "Unsave",
              type: "danger",
-             onConfirm: () => updateVideoState(videoId, { saved: !isCurrentlySaved })
+             onConfirm: () => updateVideoState(videoId, { saved: false })
            });
         } else {
-            updateVideoState(videoId, { saved: !isCurrentlySaved });
+            updateVideoState(videoId, { saved: false });
         }
       }
-    } else {
-        // Saving
-        updateVideoState(videoId, { saved: !isCurrentlySaved });
-        setIsSavedColumnOpen(true);
-    }
   };
   const deleteVideo = (videoId) => {
     updateVideoState(videoId, { deleted: !videoStates[videoId]?.deleted });
   };
 
-  // Filtering
+  // Filtering & Stats
   const today = new Date();
   const sevenDaysAgo = subDays(today, 7);
+
+  // Calculate Channel Stats (Memorized)
+  const channelStats = useMemo(() => {
+    const stats = {};
+    videos.forEach(v => {
+        if (!stats[v.channelId]) stats[v.channelId] = { today: 0, week: 0 };
+        
+        // Check if unseen/active? Or just published? Assuming "active/unseen" videos in columns
+        // User said: "how many videos are in the TODAY and PAST 7 DAYS column"
+        // Those columns filter by !seen usually. Let's count UNSEEN videos.
+        if (!videoStates[v.id]?.seen && !videoStates[v.id]?.deleted) {
+             if (isToday(parseISO(v.publishedAt))) {
+                 stats[v.channelId].today++;
+             } else if (isWithinInterval(parseISO(v.publishedAt), { start: sevenDaysAgo, end: today })) {
+                 stats[v.channelId].week++;
+             }
+        }
+    });
+    return stats;
+  }, [videos, videoStates, sevenDaysAgo]);
 
   // Pass ALL videos to columns, let them handle filtering/grouping
   // Filter videos based on Solo mode and Search
@@ -652,6 +690,16 @@ function Dashboard() {
       );
     }
 
+    // 3. Duration Filter
+    if (filterDuration !== 'ALL') {
+        filtered = filtered.filter(v => {
+            const seconds = parseDurationToSeconds(v.duration);
+            if (filterDuration === 'SHORT') return seconds <= 180;
+            if (filterDuration === 'LONG') return seconds > 180;
+            return true;
+        });
+    }
+
     // Override title with customTitle if it exists and is saved
     filtered = filtered.map(v => {
       if (videoStates[v.id]?.customTitle) {
@@ -664,28 +712,15 @@ function Dashboard() {
   }, [videos, soloChannelIds, soloCategoryIds, searchQuery, channels, videoStates]); // Added videoStates dependency
 
   const todayVideos = activeVideos.filter(v => {
-    // If Saved category is active, we might want to show saved videos here too if they are from today?
-    // Or maybe just let them flow naturally.
-    // The previous logic excluded saved videos from Today if they were saved.
-    // "return isToday(parseISO(v.publishedAt)) && !isSaved;"
-    // Now that Saved is a category, maybe we don't need to hide them from Today?
-    // But the user said "Saved videos can live anywhere".
-    // Let's keep the exclusion for now to avoid duplicates if they are shown in a "Saved" column, 
-    // BUT wait, we removed the Saved column section.
-    // So they MUST appear in the main lists if they are to be seen.
-    // If 'saved-category' is soloed, 'activeVideos' ONLY contains saved videos (and other soloed stuff).
-    // So they will appear in Today or Past based on date.
-    
-    // However, if we are NOT soloing Saved, they should just appear in their respective columns.
-    // The original logic hid them from Today if saved.
-    // "Saved videos can live anywhere" implies they should just be treated as normal videos that happen to be saved.
-    // So I will REMOVE the "!isSaved" check.
+    // Exclude saved videos to "move" them to the Saved Column
+    if (videoStates[v.id]?.saved) return false;
     return isToday(parseISO(v.publishedAt));
   });
   
   const pastVideos = activeVideos.filter(v => {
+    // Exclude saved videos
+    if (videoStates[v.id]?.saved) return false;
     const date = parseISO(v.publishedAt);
-    // Same here, remove special handling for saved videos
     return !isToday(date) && isWithinInterval(date, { start: sevenDaysAgo, end: today });
   });
 
@@ -752,6 +787,15 @@ function Dashboard() {
     });
   };
 
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-white dark:bg-black text-gray-900 dark:text-gray-300 font-sans transition-colors duration-200">
       {/* Quota Error Banner */}
@@ -792,6 +836,9 @@ function Dashboard() {
           onSignOut={handleSignOut}
           isSavedViewOpen={isSavedColumnOpen}
           onToggleSavedView={() => setIsSavedColumnOpen(!isSavedColumnOpen)}
+          channelStats={channelStats}
+          filterDuration={filterDuration}
+          setFilterDuration={setFilterDuration}
         />
       </div>
 
@@ -879,7 +926,7 @@ function Dashboard() {
             <div className="flex-1 h-full min-w-0 border-l border-gray-200 dark:border-gray-800">
                <VideoColumn 
                 title="Saved Videos" 
-                videos={videos.filter(v => videoStates[v.id]?.saved)} 
+                videos={activeVideos.filter(v => videoStates[v.id]?.saved)} 
                 emptyMessage="No saved videos"
                 loading={loading}
                 showBin={false}

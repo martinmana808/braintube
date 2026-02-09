@@ -11,7 +11,8 @@ const ChannelRow = ({
   setHoveredChannel, 
   categories, 
   updateChannelCategory, 
-  onRemoveChannel 
+  onRemoveChannel,
+  stats
 }) => {
   return (
     <div className={`
@@ -70,9 +71,26 @@ const ChannelRow = ({
         
         {!isCollapsed && (
           <div className="channel-row__name-wrapper flex flex-col min-w-0">
-            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={channel.name}>
-              {channel.name}
-            </span>
+            <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title={channel.name}>
+                {channel.name}
+                </span>
+                {/* Stats Indicators */}
+                {stats && (stats.today > 0 || stats.week > 0) && (
+                    <div className="flex items-center gap-1 text-[9px] font-mono leading-none">
+                        {stats.today > 0 && (
+                            <span className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-1 py-0.5 rounded-full" title="Videos today">
+                                {stats.today}
+                            </span>
+                        )}
+                        {stats.week > 0 && (
+                            <span className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-1 py-0.5 rounded-full" title="Videos this week">
+                                {stats.week}
+                            </span>
+                        )}
+                    </div>
+                )}
+            </div>
           </div>
         )}
       </div>

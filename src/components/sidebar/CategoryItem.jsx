@@ -18,7 +18,8 @@ const CategoryItem = ({
   onRemoveChannel,
   updateChannelCategory,
   categories,
-  setHoveredChannel
+  setHoveredChannel,
+  channelStats
 }) => {
   const channelRowProps = {
     onToggleSolo,
@@ -26,7 +27,8 @@ const CategoryItem = ({
     updateChannelCategory,
     categories,
     setHoveredChannel,
-    soloChannelIds
+    soloChannelIds,
+    channelStats
   };
 
   // Check if this category is collapsed in the UI
@@ -55,6 +57,7 @@ const CategoryItem = ({
                   isCollapsed={isCollapsed}
                   soloCategoryIds={soloCategoryIds}
                   {...channelRowProps}
+                  stats={channelStats[channel.id]}
                 />
               ))}
           </div>
@@ -175,7 +178,9 @@ const CategoryItem = ({
                   channel={channel}
                   isCollapsed={isCollapsed}
                   soloCategoryIds={soloCategoryIds}
+                  soloCategoryIds={soloCategoryIds}
                   {...channelRowProps}
+                  stats={channelStats[channel.id]}
                 />
               ))
             ) : (
