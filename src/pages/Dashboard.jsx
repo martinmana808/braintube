@@ -839,6 +839,7 @@ function Dashboard() {
           channelStats={channelStats}
           filterDuration={filterDuration}
           setFilterDuration={setFilterDuration}
+          YOUTUBE_API_KEY={YOUTUBE_API_KEY}
         />
       </div>
 

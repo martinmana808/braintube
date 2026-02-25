@@ -626,3 +626,50 @@ Recorded today's activities in `GEMINI.md` and `GEMINI--logs.md` to ensure foren
 - Checked `README.md` for accuracy.
 - Confirmed `GEMINI--manifesto.md` content.
 - Verified correct linking between history and logs.
+
+<a name="log-20260225-channel-fix"></a>
+## [2026-02-25] Fix: "Add Channel" Button Disabled
+
+**User Prompt:** "the add channel (+) button never goes enabled. https://www.youtube.com/@HarvestZ @HarvestZ HarvestZ I cannot add any of those channels. Please fix."
+
+### Verbatim Artifacts:
+
+#### Implementation Plan: Fix: "Add Channel" Button Disabled
+
+This task addresses the issue where the "Add Channel" button remains disabled, preventing users from adding new channels.
+
+## Proposed Changes
+
+### Dashboard Component
+#### [MODIFY] [Dashboard.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/pages/Dashboard.jsx)
+- Pass the `YOUTUBE_API_KEY` prop to `SettingsPanel`. This was missing in the dashboard's render method, causing children to receive `undefined` and disable the add button.
+
+### Documentation & Logs
+#### [MODIFY] [GEMINI.md](file:///Users/martinmana/Documents/Projects/braintube/GEMINI.md)
+- Add history entry for the channel addition fix.
+
+#### [MODIFY] [GEMINI--logs.md](file:///Users/martinmana/Documents/Projects/braintube/GEMINI--logs.md)
+- Add forensic log for this task.
+
+## Verification Plan
+
+### Manual Verification
+- Verify that the "Add..." button in the sidebar (when expanded) enables the "Channel" input form.
+- Verify that once the form is open, the "+" (Add) button is enabled.
+- Test adding a channel using a handle (e.g., `@HarvestZ`) and a full URL.
+
+#### Walkthrough: Channel Fix Walkthrough
+
+I have resolved the issue where the channel addition button remained disabled.
+
+## Changes Made
+
+### 1. Fixed Prop Drilling in Dashboard.jsx
+Discovered that the `YOUTUBE_API_KEY` was being read from the environment correctly but was never passed to the `SettingsPanel` component. This caused the `SidebarAddMenu` to receive `undefined` for the key, resulting in the "Add" button being permanently disabled.
+
+### 2. Documentation and Verification
+Updated the project history and logs to reflect this fix. Verified that the service layer is robust enough to handle the variety of inputs (handles, URLs) provided by the user once the UI allows submission.
+
+## Verification
+- Checked that the `+` button in the channel form is now enabled when a API key is present.
+- Confirmed that the fix solves the "Permanently Disabled" state reported by the user.

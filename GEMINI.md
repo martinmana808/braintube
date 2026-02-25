@@ -5,6 +5,9 @@ BrainTube is a curated YouTube experience allowing users to organize channels an
 **Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtubei.js.
 
 ## History
+### [2026-02-25] Fix: "Add Channel" Button Disabled | [Technical Details](./GEMINI--logs.md#log-20260225-channel-fix)
+- Resolved issue where `YOUTUBE_API_KEY` was not passed to `SettingsPanel`.
+- Fixed permanently disabled state of the "Add Channel" submission button.
 ### [2026-02-25] Documentation Sync & Manifesto Initialization | [Technical Details](./GEMINI--logs.md#log-20260225-docs-manifesto)
 - Updated `README.md` to remove deprecated features (AI Chat).
 - Initialized `GEMINI--manifesto.md` with project vision and goals.
