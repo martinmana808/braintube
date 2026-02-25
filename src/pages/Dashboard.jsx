@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { isToday, isWithinInterval, subDays, parseISO } from 'date-fns';
 import { parseDurationToSeconds } from '../utils/formatters';
 import VideoColumn from '../components/VideoColumn';
@@ -12,14 +12,23 @@ import OnboardingModal from '../components/OnboardingModal';
 import HelpModal from '../components/HelpModal';
 
 import ConfirmationModal from '../components/ConfirmationModal';
-// import SettingsModal from '../components/SettingsModal';
-import { motion, AnimatePresence } from 'framer-motion';
+import SettingsModal from '../components/SettingsModal';
+import { AnimatePresence } from 'framer-motion';
 import { Settings } from 'lucide-react';
 import { getQuota } from '../services/quota';
 
 function Dashboard() {
-  const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
-  const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+  const [apiKeys, setApiKeys] = useState(() => {
+    const saved = localStorage.getItem('bt_api_keys');
+    if (saved) return JSON.parse(saved);
+    return {
+      youtube: import.meta.env.VITE_YOUTUBE_API_KEY || '',
+      groq: import.meta.env.VITE_GROQ_API_KEY || ''
+    };
+  });
+
+  const YOUTUBE_API_KEY = apiKeys.youtube;
+  const GROQ_API_KEY = apiKeys.groq;
 
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
   const [channels, setChannels] = useState([]);
@@ -41,7 +50,6 @@ function Dashboard() {
   const [quotaError, setQuotaError] = useState(false);
   const [user, setUser] = useState(null);
   const [quotaStats, setQuotaStats] = useState({ youtube: 0, groq: 0 });
-  // const [quotaStats, setQuotaStats] = useState({ youtube: 0, groq: 0 }); // REMOVED DUPLICATE
   const [isSavedColumnOpen, setIsSavedColumnOpen] = useState(false);
   const [filterDuration, setFilterDuration] = useState('ALL'); // 'ALL', 'SHORT', 'LONG'
 
@@ -134,6 +142,11 @@ function Dashboard() {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
+  const saveSettings = (newKeys) => {
+    setApiKeys(newKeys);
+    localStorage.setItem('bt_api_keys', JSON.stringify(newKeys));
+  };
+
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark');
   };
@@ -222,107 +235,91 @@ function Dashboard() {
 
   const isSyncingRef = useRef(false);
 
-  // Fetch Data (Smart Sync)
-  useEffect(() => {
+  const syncStaleChannels = useCallback(async () => {
     if (!YOUTUBE_API_KEY || channels.length === 0) return;
+    // Prevent concurrent syncs
+    if (isSyncingRef.current) return;
+    isSyncingRef.current = true;
 
-    const syncStaleChannels = async () => {
-      // Prevent concurrent syncs
-      if (isSyncingRef.current) return;
-      isSyncingRef.current = true;
+    try {
+      // Don't start sync if quota error is already active
+      if (quotaError) return;
 
-      try {
-        // Don't start sync if quota error is already active
-        if (quotaError) return;
+      const now = new Date();
+      const currentHourStart = new Date(now);
+      currentHourStart.setMinutes(0, 0, 0); // Reset to start of the hour
+      const currentHourStartMs = currentHourStart.getTime();
 
-        // Strict Hourly Sync: Max 1 sync per hour slot
-        // We check if the lastSyncedAt timestamp falls within the CURRENT hour's window.
-        // e.g. If now is 10:45, the window is 10:00:00 - 10:59:59.
-        // If last sync was at 09:55, it's outside the window -> SYNC.
-        // If last sync was at 10:05, it's inside the window -> SKIP.
+      const activeChannels = channels.filter(c => c.visible !== false);
+      
+      let updatedAny = false;
+      let runningVideos = [...videos];
+
+      for (const channel of activeChannels) {
+        const lastSynced = channel.lastSyncedAt ? new Date(channel.lastSyncedAt).getTime() : 0;
+        const isStale = lastSynced < currentHourStartMs;
         
-        const now = new Date();
-        const currentHourStart = new Date(now);
-        currentHourStart.setMinutes(0, 0, 0); // Reset to start of the hour
-        const currentHourStartMs = currentHourStart.getTime();
+        if ((isStale || channel.cachedVideos.length === 0) && !quotaError) {
+          try {
+            setLoading(true);
+            const latestVideos = await fetchVideos(
+              YOUTUBE_API_KEY, 
+              channel.uploads_playlist_id || channel.uploadsPlaylistId,
+              channel.cachedVideos
+            );
+            
+            const latestIds = new Set(latestVideos.map(v => v.id));
+            const mergedChannelVideos = [
+              ...latestVideos, 
+              ...channel.cachedVideos.filter(v => !latestIds.has(v.id))
+            ];
 
-        const activeChannels = channels.filter(c => c.visible !== false);
-        
-        let updatedAny = false;
-        let runningVideos = [...videos];
+            await supabase.from('channels').update({
+              cached_videos: mergedChannelVideos,
+              last_synced_at: new Date().toISOString()
+            }).eq('id', channel.id);
 
-        for (const channel of activeChannels) {
-          const lastSynced = channel.lastSyncedAt ? new Date(channel.lastSyncedAt).getTime() : 0;
-          
-          // Check if lastSynced is BEFORE the start of the current hour
-          // AND if we haven't already hit quota error
-          const isStale = lastSynced < currentHourStartMs;
-          
-          console.log(`Checking ${channel.name}: LastSynced=${new Date(lastSynced).toLocaleTimeString()}, WindowStart=${new Date(currentHourStartMs).toLocaleTimeString()}, IsStale=${isStale}, CacheSize=${channel.cachedVideos.length}`);
+            const others = runningVideos.filter(v => v.channelId !== channel.id);
+            runningVideos = [...others, ...mergedChannelVideos].sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
+            
+            setVideos(runningVideos);
+            localStorage.setItem('bt_videos_cache', JSON.stringify(runningVideos));
+            
+            setChannels(prev => prev.map(c => c.id === channel.id ? { 
+              ...c, 
+              cachedVideos: mergedChannelVideos, 
+              lastSyncedAt: new Date().toISOString() 
+            } : c));
 
-          if ((isStale || channel.cachedVideos.length === 0) && !quotaError) {
-            console.log(`Syncing stale channel: ${channel.name}`);
-            try {
-              setLoading(true);
-              const latestVideos = await fetchVideos(
-                YOUTUBE_API_KEY, 
-                channel.uploads_playlist_id || channel.uploadsPlaylistId,
-                channel.cachedVideos
-              );
-              
-              // Merge with existing cache for this channel
-              const latestIds = new Set(latestVideos.map(v => v.id));
-              const mergedChannelVideos = [
-                ...latestVideos, 
-                ...channel.cachedVideos.filter(v => !latestIds.has(v.id))
-              ];
-
-              // Update Supabase Cache
-              await supabase.from('channels').update({
-                cached_videos: mergedChannelVideos,
-                last_synced_at: new Date().toISOString()
-              }).eq('id', channel.id);
-
-              // Update running main videos list (the global state)
-              const others = runningVideos.filter(v => v.channelId !== channel.id);
-              runningVideos = [...others, ...mergedChannelVideos].sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-              
-              setVideos(runningVideos);
-              localStorage.setItem('bt_videos_cache', JSON.stringify(runningVideos));
-              
-              // Also update the channel state itself so subsequent iterations have the new cache
-              setChannels(prev => prev.map(c => c.id === channel.id ? { 
-                ...c, 
-                cachedVideos: mergedChannelVideos, 
-                lastSyncedAt: new Date().toISOString() 
-              } : c));
-
-              updatedAny = true;
-            } catch (error) {
-              console.error(`Error syncing channel ${channel.name}:`, error);
-              if (error.message === 'DAILY_QUOTA_EXCEEDED') {
-                 setQuotaError(true);
-                 break; 
-              }
+            updatedAny = true;
+          } catch (error) {
+            console.error(`Error syncing channel ${channel.name}:`, error);
+            if (error.message === 'DAILY_QUOTA_EXCEEDED') {
+               setQuotaError(true);
+               break; 
             }
           }
         }
-
-        if (updatedAny) {
-          setQuotaError(false);
-        }
-        setLoading(false);
-
-      } finally {
-        isSyncingRef.current = false;
       }
-    };
+
+      if (updatedAny) {
+        setQuotaError(false);
+      }
+      setLoading(false);
+
+    } finally {
+      isSyncingRef.current = false;
+    }
+  }, [YOUTUBE_API_KEY, channels, quotaError, videos]);
+
+  // Fetch Data (Smart Sync)
+  useEffect(() => {
 
     syncStaleChannels();
     // Check for staleness every hour
     const interval = setInterval(syncStaleChannels, 1000 * 60 * 60); 
     return () => clearInterval(interval);
-  }, [YOUTUBE_API_KEY, channels, quotaError]);
+  }, [YOUTUBE_API_KEY, channels, quotaError, videos, syncStaleChannels]);
 
   const addChannel = async (channelIdOrUrl) => {
     if (!YOUTUBE_API_KEY) return;
@@ -477,16 +474,7 @@ function Dashboard() {
     }
   };
 
-  const toggleChannelVisibility = async (id) => {
-    const channel = channels.find(c => c.id === id);
-    if (!channel) return;
-    const { error } = await supabase.from('channels').update({ visible: !channel.visible }).eq('id', id);
-    if (!error) {
-      setChannels(prev => prev.map(c => c.id === id ? { ...c, visible: !c.visible } : c));
-    } else {
-      console.error("Error toggling channel visibility:", error);
-    }
-  };
+
 
   const toggleChannelSolo = (id) => {
     setSoloChannelIds(prev => {
@@ -635,8 +623,13 @@ function Dashboard() {
   };
 
   // Filtering & Stats
-  const today = new Date();
-  const sevenDaysAgo = subDays(today, 7);
+  const { today, sevenDaysAgo } = useMemo(() => {
+    const now = new Date();
+    return {
+      today: now,
+      sevenDaysAgo: subDays(now, 7)
+    };
+  }, []); // Only once per mount, or could be on a timer
 
   // Calculate Channel Stats (Memorized)
   const channelStats = useMemo(() => {
@@ -656,7 +649,7 @@ function Dashboard() {
         }
     });
     return stats;
-  }, [videos, videoStates, sevenDaysAgo]);
+  }, [videos, videoStates, sevenDaysAgo, today]);
 
   // Pass ALL videos to columns, let them handle filtering/grouping
   // Filter videos based on Solo mode and Search
@@ -709,7 +702,7 @@ function Dashboard() {
     });
 
     return filtered;
-  }, [videos, soloChannelIds, soloCategoryIds, searchQuery, channels, videoStates]); // Added videoStates dependency
+  }, [videos, soloChannelIds, soloCategoryIds, searchQuery, channels, videoStates, filterDuration]); // Added videoStates dependency
 
   const todayVideos = activeVideos.filter(v => {
     // Exclude saved videos to "move" them to the Saved Column
@@ -723,6 +716,10 @@ function Dashboard() {
     const date = parseISO(v.publishedAt);
     return !isToday(date) && isWithinInterval(date, { start: sevenDaysAgo, end: today });
   });
+
+  const savedVideosCount = useMemo(() => {
+    return activeVideos.filter(v => videoStates[v.id]?.saved && !videoStates[v.id]?.deleted).length;
+  }, [activeVideos, videoStates]);
 
   const commonProps = {
     videoStates,
@@ -840,58 +837,15 @@ function Dashboard() {
           filterDuration={filterDuration}
           setFilterDuration={setFilterDuration}
           YOUTUBE_API_KEY={YOUTUBE_API_KEY}
+          onRefreshFeed={syncStaleChannels}
+          loading={loading}
+          quotaStats={quotaStats}
+          savedVideosCount={savedVideosCount}
         />
       </div>
 
-      {/* Main Content Area (Expands to fill space) */}
+        {/* Main Content Area (Expands to fill space) */}
       <div className={`flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-[#09090b] transition-all duration-300`}>
-
-
-
-        {/* Main Header */}
-        <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-[#09090b]">
-          <div className="flex items-center gap-4">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Feed</h2>
-            
-            {/* Quota Stats */}
-            <div className="flex items-center gap-3 text-xs font-mono ml-4 opacity-70">
-              <div className="flex items-center gap-1.5" title="YouTube Data API Quota Usage (Daily Limit: 10,000)">
-                <div className={`w-1.5 h-1.5 rounded-full ${quotaStats.youtube > 9000 ? 'bg-red-500' : 'bg-green-500'}`} />
-                <span className="text-gray-600 dark:text-gray-400">
-                  YT: <span className="font-semibold text-gray-900 dark:text-gray-200">{quotaStats.youtube.toLocaleString()}</span>/10k
-                </span>
-              </div>
-              
-              <div className="w-px h-3 bg-gray-200 dark:bg-zinc-800" />
-              
-              <div className="flex items-center gap-1.5" title="Groq AI Token Usage (Daily)">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                <span className="text-gray-600 dark:text-gray-400">
-                  AI: <span className="font-semibold text-gray-900 dark:text-gray-200">{quotaStats.groq.toLocaleString()}</span> toks
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => {
-                // Force sync by clearing timestamps in local state
-                setChannels(prev => prev.map(c => ({ ...c, lastSyncedAt: 0 })));
-              }}
-              disabled={loading}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors border border-gray-200 dark:border-zinc-700 disabled:opacity-50"
-              title="Force check for new videos"
-            >
-              <div className={loading ? "animate-spin" : ""}>
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </div>
-              {loading ? 'Refreshing...' : 'Refresh Feed'}
-            </button>
-          </div>
-        </header>
 
         <div className="flex-1 flex min-w-0 overflow-hidden">
           {/* Middle Column: Today */}
@@ -931,7 +885,7 @@ function Dashboard() {
                 emptyMessage="No saved videos"
                 loading={loading}
                 showBin={false}
-                showSaved={true}
+                showSaved={false} // Set to false so they render as main videos with correct counts
                 searchQuery={searchQuery}
                 {...commonProps}
               />
@@ -994,17 +948,18 @@ function Dashboard() {
         )}
       </AnimatePresence>
 
-      {/* <AnimatePresence>
+      <AnimatePresence>
         {isSettingsOpen && (
           <SettingsModal
             isOpen={isSettingsOpen}
             onClose={() => setIsSettingsOpen(false)}
-            onAddVideoByLink={addVideoByLink}
-            onAddChannel={addChannel}
-            onAddCategory={addCategory}
+            initialKeys={apiKeys}
+            onSave={saveSettings}
+            user={user}
+            onSignOut={handleSignOut}
           />
         )}
-      </AnimatePresence> */}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showOnboarding && (

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../services/supabase';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { FolderDown, FolderUp, User, Folder, Plus } from 'lucide-react';
 
 // Sidebar Components
@@ -21,26 +19,24 @@ const SettingsPanel = ({
   onAddVideoByLink, onAddChannel,
   theme, toggleTheme,
   onOpenSettings,
-  onOpenHelp,
   isCollapsed,
   onToggleSidebar,
   collapsedCategories,
   toggleCategoryCollapse,
-  isSavedSelected,
-  onToggleSavedSelected,
   YOUTUBE_API_KEY,
   user,
-  onSignOut,
+  onRefreshFeed,
+  loading,
   isSavedViewOpen,
   onToggleSavedView,
   channelStats,
   filterDuration,
-  setFilterDuration
+  setFilterDuration,
+  savedVideosCount
 }) => {
-  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('all'); // 'categories' or 'all'
   const [activeAddMode, setActiveAddMode] = useState(null); // 'video', 'channel', 'category', null
-  const [hoveredChannel, setHoveredChannel] = useState(null); // { id, name, top, left }
+  const [, setHoveredChannel] = useState(null); 
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false); // For compressed view dropdown
   const [addMenuPos, setAddMenuPos] = useState({ top: 0, left: 0 });
   const searchInputRef = React.useRef(null);
@@ -232,6 +228,7 @@ const SettingsPanel = ({
                     YOUTUBE_API_KEY={YOUTUBE_API_KEY}
                     isSavedViewOpen={isSavedViewOpen}
                     onToggleSavedView={onToggleSavedView}
+                    savedVideosCount={savedVideosCount}
                 />
 
                 {channels.length > 0 ? renderChannelList(channels) : (
@@ -261,6 +258,7 @@ const SettingsPanel = ({
                     YOUTUBE_API_KEY={YOUTUBE_API_KEY}
                     isSavedViewOpen={isSavedViewOpen}
                     onToggleSavedView={onToggleSavedView}
+                    savedVideosCount={savedVideosCount}
                 />
 
                 {/* Categories */}
@@ -354,8 +352,8 @@ const SettingsPanel = ({
         theme={theme}
         toggleTheme={toggleTheme}
         onOpenSettings={onOpenSettings}
-        onOpenHelp={onOpenHelp}
-        onSignOut={onSignOut}
+        onRefreshFeed={onRefreshFeed}
+        loading={loading}
       />
     </div>
   );

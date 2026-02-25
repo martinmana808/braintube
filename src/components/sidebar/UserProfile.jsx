@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Sun, Moon, Settings, LogOut, HelpCircle } from 'lucide-react';
+import { User, Sun, Moon, Settings, RefreshCw, HelpCircle } from 'lucide-react';
 
 const UserProfile = ({ 
   user, 
@@ -8,8 +8,7 @@ const UserProfile = ({
   theme, 
   toggleTheme,
   onOpenSettings,
-  onOpenHelp,
-  onSignOut
+  loading
 }) => {
   return (
     <div className={`
@@ -92,10 +91,26 @@ const UserProfile = ({
                 {user?.user_metadata?.full_name || 'User'}
                 </div>
                 <div className="text-[10px] text-gray-500 truncate">
-                {user?.app_metadata?.provider ? `Via ${user.app_metadata.provider}` : user?.email}
+                {user?.email}
                 </div>
             </div>
             
+            {/* Refresh Feed Indicator */}
+            <div
+                className={`
+                  user-profile__refresh-indicator
+                  p-1.5
+                  rounded-lg
+                  text-gray-400
+                  dark:text-gray-500
+                  transition-colors
+                  ${loading ? 'animate-spin text-blue-600 dark:text-blue-400' : ''}
+                `}
+                title="App will refresh every hour just once, to save quota"
+            >
+                <RefreshCw className="w-4 h-4" />
+            </div>
+
             {/* Theme Toggle - Sun/Moon Icons */}
             <button
                 onClick={toggleTheme}
@@ -132,44 +147,6 @@ const UserProfile = ({
                 title="Settings"
             >
                 <Settings className="w-4 h-4" />
-            </button>
-
-             {/* Help Button */}
-             <button
-                onClick={onOpenHelp}
-                className="
-                  user-profile__help-btn
-                  p-1.5
-                  rounded-lg
-                  text-gray-500
-                  hover:bg-gray-200
-                  dark:hover:bg-gray-800
-                  hover:text-gray-900
-                  dark:hover:text-gray-100
-                  transition-colors
-                "
-                title="Help"
-            >
-                <HelpCircle className="w-4 h-4" />
-            </button>
-
-            {/* Sign Out Button */}
-            <button
-                onClick={onSignOut}
-                className="
-                  user-profile__logout-btn
-                  p-1.5
-                  rounded-lg
-                  text-gray-500
-                  hover:bg-red-50
-                  dark:hover:bg-red-900/20
-                  hover:text-red-600
-                  dark:hover:text-red-400
-                  transition-colors
-                "
-                title="Sign Out"
-            >
-                <LogOut className="w-4 h-4" />
             </button>
           </div>
       )}

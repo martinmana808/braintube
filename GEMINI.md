@@ -5,6 +5,12 @@ BrainTube is a curated YouTube experience allowing users to organize channels an
 **Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtubei.js.
 
 ## History
+### [2026-02-25] Feature: Settings Modal & UI Refactor | [Technical Details](./GEMINI--logs.md#log-20260225-ui-refactor-settings)
+- Implemented user-managed API keys via a new Settings Modal.
+- Refactored layout: removed feed header, moved "Refresh Feed" and "Sign Out" to sidebar/settings.
+- Optimized React performance and resolved lingering lint issues (including `ReferenceError` fix).
+- Added quota-limit tooltip to "Refresh Feed" button.
+- Fixed zero-counts displayed for the "Saved" video metrics. 
 ### [2026-02-25] Fix: "Add Channel" Button Disabled | [Technical Details](./GEMINI--logs.md#log-20260225-channel-fix)
 - Resolved issue where `YOUTUBE_API_KEY` was not passed to `SettingsPanel`.
 - Fixed permanently disabled state of the "Add Channel" submission button.

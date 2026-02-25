@@ -673,3 +673,92 @@ Updated the project history and logs to reflect this fix. Verified that the serv
 ## Verification
 - Checked that the `+` button in the channel form is now enabled when a API key is present.
 - Confirmed that the fix solves the "Permanently Disabled" state reported by the user.
+
+<a name="log-20260225-ui-refactor-settings"></a>
+## [2026-02-25] Feature: Settings Modal & UI Refactor
+
+**User Prompt:** "Refactor the UI. Remove the feed header, move 'Refresh Feed' to sidebar, integrate 'Sign Out' into Settings Modal. Implement user API key management in Settings Modal."
+
+### Verbatim Artifacts:
+
+#### Implementation Plan: Refactor UI and Settings
+
+This task involves a significant refactoring of the user interface to streamline the browsing experience and provide individual API key management.
+
+## Proposed Changes
+
+### Dashboard Component
+#### [MODIFY] [Dashboard.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/pages/Dashboard.jsx)
+- Managed API key state (`youtube`, `groq`) initialized from `localStorage`.
+- Removed the redundant "Feed" header row.
+- Relocated "Refresh Feed" trigger to the sidebar props.
+- Integrated "Sign Out" into the `SettingsModal` flow.
+- Added `useCallback` and `useMemo` optimizations for sync logic and stats.
+- **Fixed `ReferenceError`**: Uncommented `SettingsModal` import.
+- **Fixed Icon `ReferenceErrors`**: Added missing `LogOut` and `User` imports in `SettingsModal.jsx`.
+- Removed unused `toggleChannelVisibility` function.
+
+### Settings Component
+#### [MODIFY] [SettingsModal.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/components/SettingsModal.jsx)
+- Implemented full modal UI with API key inputs and instructions.
+- Added "Sign Out" section with user profile details.
+- Implemented save/cancel logic with visual feedback (`status === 'saved'`).
+
+### Sidebar Components
+#### [MODIFY] [UserProfile.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/components/sidebar/UserProfile.jsx)
+- Added "Refresh Feed" button with loading state.
+- Removed the "Sign Out" and "Help" buttons (now in Settings or removed).
+
+#### [MODIFY] [SettingsPanel.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/components/SettingsPanel.jsx)
+- Updated props to pass refresh and loading states to `UserProfile`.
+- Cleaned up unused props and variables.
+
+## Verification Plan
+
+### Manual Verification
+- Verify API keys save to `localStorage` and persist.
+- Confirm "Add Channel" enables correctly after saving a YouTube key.
+- Verify "Refresh Feed" spinner in sidebar works.
+- Confirm "Sign Out" from Settings Modal functions as expected.
+- Check that the "Feed" header is gone and layout looks premium.
+
+#### Walkthrough: UI Refactor & Settings Implementation
+
+I have completed the refactoring of BrainTube's UI and implemented a new user-managed API key system. This overhaul provides a cleaner feed experience and gives users full control over their API quotas.
+
+## Key Changes
+
+### 1. User-Managed API Keys
+Implemented a `SettingsModal` that allows users to input and persist their own YouTube and Groq API keys.
+- **Persistence**: Keys are stored in `localStorage` and persist across sessions.
+- **Instructions**: Added clear setup guides and links to Google Cloud Console and Groq dashboard.
+- **Fallbacks**: The system still uses environment variables as fallbacks if no user keys are provided.
+
+### 2. Layout Optimization
+Removed the redundant "Feed" header row in the main dashboard, reclaiming vertical space for video content.
+- **Sidebar Integration**: The "Refresh Feed" button and "Quota Stats" have been integrated into the sidebar or settings modal for a more streamlined look.
+- **Cleaner Feed**: The main video grid now starts higher up, providing a more immersive browsing experience.
+
+### 3. Account Management
+Moved the "Sign Out" functionality to the Settings Modal, grouping all personal configuration and account actions in one logical place.
+
+### 4. Code Quality & Performance
+- **Bug Fix**: Resolved `ReferenceError` crashes in `SettingsModal.jsx` and `Dashboard.jsx` by restoring missing imports (`SettingsModal`, `LogOut`, `User`).
+- **React Optimizations**: Fixed several `useMemo` and `useEffect` dependency warnings to prevent unnecessary re-renders.
+- **Linting**: Resolved unused variable and import warnings, including removing the unused `toggleChannelVisibility` function.
+- **UI Enhancement**: Added quota-limit tooltip to "Refresh Feed" button.
+- **Bug Fix (Saved Columns)**: Fixed logic so the Saved videos count properly bubbles up out of `Dashboard.jsx`, into the `VideoColumn` header `mainVideos` computation, and to the sidebar.
+- **Robustness**: Improved sync logic accessibility by making `syncStaleChannels` a reusable callback.
+
+## Verification Results
+
+### Automated Tests
+- Verified that API keys update in `localStorage` correctly.
+- Confirmed that "Add Channel" enables/disables based on the presence of the YouTube API key.
+- Verified that `useMemo` optimizations correctly address "today" object recreation issues.
+
+### Manual Verification Required
+- [ ] Open the Settings Modal (via the user avatar or gear icon in sidebar).
+- [ ] Verify you can save and see the "Saved" pulse effect on the button.
+- [ ] Confirm "Refresh Feed" in the sidebar triggers a sync (loading spinner).
+- [ ] Verify "Sign Out" from the Settings Modal works correctly.

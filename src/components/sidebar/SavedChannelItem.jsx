@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const SavedChannelItem = ({ 
   isCollapsed, 
-  onToggleCategorySolo, 
   setHoveredChannel, 
   soloCategoryIds, 
   soloChannelIds,
@@ -13,7 +12,8 @@ const SavedChannelItem = ({
   onAddVideoByLink,
   YOUTUBE_API_KEY,
   isSavedViewOpen,
-  onToggleSavedView
+  onToggleSavedView,
+  savedVideosCount = 0
 }) => {
   return (
     <div className="flex flex-col mb-3">
@@ -69,10 +69,19 @@ const SavedChannelItem = ({
             </div>
             
             {!isCollapsed && (
-                <div className="saved-channel-item__label-wrapper flex items-center gap-2 min-w-0">
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title="Saved Videos">
-                        Saved
-                    </span>
+                <div className="saved-channel-item__label-wrapper flex flex-col min-w-0">
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate" title="Saved Videos">
+                            Saved
+                        </span>
+                        {savedVideosCount > 0 && (
+                            <div className="flex items-center gap-1 text-[9px] font-mono leading-none">
+                                <span className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-1 py-0.5 rounded-full" title="Total saved videos">
+                                    {savedVideosCount}
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>
