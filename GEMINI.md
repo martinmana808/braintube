@@ -5,6 +5,10 @@ BrainTube is a curated YouTube experience allowing users to organize channels an
 **Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtubei.js.
 
 ## History
+### [2026-02-25] Documentation Sync & Manifesto Initialization | [Technical Details](./GEMINI--logs.md#log-20260225-docs-manifesto)
+- Updated `README.md` to remove deprecated features (AI Chat).
+- Initialized `GEMINI--manifesto.md` with project vision and goals.
+- Synchronized documentation with the Antigravity Master Logging Protocol.
 ### [2026-02-09] New Features: Shorts, Notes, Saved Flow, & Filters | [Technical Details](./GEMINI--logs.md#log-20260209-new-features)
 - **Shorts**: Updated definition to **3 minutes** (180s) and added filter toggle.
 - **Notes**: Restricted to **saved videos**, with **unsave protection**.

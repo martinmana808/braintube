@@ -15,8 +15,6 @@ BrainTube integrates with Groq's Llama 3 to supercharge your viewing:
 -   **Quick Summary**:
     -   **Instant Overview**: Click the **Sparkles icon** on any video card to read a concise, bulleted summary of the video without opening it.
     -   **On-Demand Generation**: If a summary doesn't exist (gray icon), clicking it will generate one instantly.
--   **Chat with Video**:
-    -   Open a video and switch to the **CHAT** tab to ask questions about the content. The AI answers based strictly on the video's transcript.
 
 ### 3. Organization & Focus
 -   **Categories**: Group your channels (e.g., "Tech", "Science", "Music") to filter your feed.
@@ -49,9 +47,7 @@ BrainTube employs a "Supabase First" strategy to save on API costs:
 -   **Solo**: Click the **Eye icon** to focus on a single channel. Click the **Crossed-Eye icon** to return to the full feed.
 
 ### 3. Watching & Interacting
--   **Click a video** to open the player.
 -   **Summary**: Read the AI-generated summary in the "SUMMARY" tab.
--   **Chat**: Ask questions in the "CHAT" tab.
 -   **Quick Summary**: Look for the Sparkles icon on the video card in the main list.
 
 ---

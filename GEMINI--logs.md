@@ -572,3 +572,57 @@ Implemented a system to track API usage per day (resets at midnight).
 - **[Walkthrough](./walkthrough.md)**: Updated with verification steps for new features.
 - **[Task List](./task.md)**: All relevant tasks marked complete.
 
+
+<a name="log-20260225-docs-manifesto"></a>
+## [2026-02-25] Documentation Sync & Manifesto Initialization
+
+**User Prompt:** @[/git-add-commit-push]
+
+### Verbatim Artifacts:
+
+#### Implementation Plan: Documentation & Sync Plan
+
+This plan addresses discrepancies in the `README.md` and fulfills the requirements of the Antigravity Master Logging Protocol by creating the missing manifesto and logging today's activities.
+
+## Proposed Changes
+
+### Documentation
+#### [MODIFY] [README.md](file:///Users/martinmana/Documents/Projects/braintube/README.md)
+- Remove "Chat with Video" section as it was deprecated in previous updates.
+- Ensure all feature descriptions align with the current state reported in `GEMINI.md`.
+
+#### [NEW] [GEMINI--manifesto.md](file:///Users/martinmana/Documents/Projects/braintube/GEMINI--manifesto.md)
+- Create the "Project Soul" document detailing the vision, problem solved, and proposed solution for BrainTube.
+
+#### [MODIFY] [GEMINI.md](file:///Users/martinmana/Documents/Projects/braintube/GEMINI.md)
+- Add history entry for today's documentation sync.
+
+#### [MODIFY] [GEMINI--logs.md](file:///Users/martinmana/Documents/Projects/braintube/GEMINI--logs.md)
+- Add forensic log for the documentation and sync task.
+
+## Verification Plan
+
+### Manual Verification
+- Verify that `README.md` no longer mentions removed features.
+- Verify that `GEMINI.md` and `GEMINI--logs.md` are correctly linked via the new Task ID.
+- Confirm `GEMINI--manifesto.md` exists and contains the project's vision.
+
+#### Walkthrough: Documentation Sync Walkthrough
+
+I have updated the project's documentation and initialized the missing manifesto to align with the Antigravity Master Logging Protocol.
+
+## Changes Made
+
+### 1. Updated README.md
+Removed mentions of the "Chat with Video" feature which was deprecated in a previous iteration. I also simplified the "Watching & Interacting" section.
+
+### 2. Initialized GEMINI--manifesto.md
+Created the required manifesto document detailing the project's vision, the problem it solves, and its core solution. This document serves as the "soul" of BrainTube.
+
+### 3. Updated Project Ledger
+Recorded today's activities in `GEMINI.md` and `GEMINI--logs.md` to ensure forensic traceability.
+
+## Verification
+- Checked `README.md` for accuracy.
+- Confirmed `GEMINI--manifesto.md` content.
+- Verified correct linking between history and logs.
