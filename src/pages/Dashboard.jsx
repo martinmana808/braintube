@@ -469,6 +469,13 @@ function Dashboard() {
     const { error } = await supabase.from('channels').delete().eq('id', id);
     if (!error) {
       setChannels(prev => prev.filter(c => c.id !== id));
+      
+      // Also remove the videos belonging to this channel from active state and local cache
+      setVideos(prev => {
+        const filteredVideos = prev.filter(v => v.channelId !== id);
+        localStorage.setItem('bt_videos_cache', JSON.stringify(filteredVideos));
+        return filteredVideos;
+      });
     } else {
       console.error("Error removing channel:", error);
     }
