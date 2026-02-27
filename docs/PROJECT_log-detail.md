@@ -825,3 +825,53 @@ This fix resolves the issue where the "Saved Videos" column header displayed `AL
 - Manual inspection of the application state shows that `ALL (X)` properly populates in the column header logic.
 - Total saved count propagates to the `Saved` sidebar menu component next to the Heart icon.
 
+
+
+<a name="log-20260227-multi-tenancy-fix"></a>
+## [2026-02-27] Fix: Duplicate Key Multi-Tenancy Error
+
+**User Prompt:** My friend tried this. I sent him the link, the production link. He created a user. He tried adding a channel and he got an error. Could not add channel, duplicate key value violates unique constraint "channels_pkey"
+
+### Verbatim Artifacts:
+
+#### Implementation Plan: Fix Supabase Table Constraints for Multi-tenancy
+
+This task addresses the issue where a second user cannot add a previously added channel due to a primary key constraint violation. 
+
+## Proposed Changes
+
+### Database Migration
+#### [NEW] [docs/supabase_migration_multi_user.sql](file:///Users/martinmana/Documents/Projects/braintube/docs/supabase_migration_multi_user.sql)
+- Created a SQL script to alter the primary keys for both `channels` and `video_metadata` tables.
+- Changed the primary keys from a single `id` or `video_id` column to a composite primary key consisting of `(id, user_id)` and `(video_id, user_id)` respectively.
+
+### Documentation & Logs
+#### [MODIFY] [PROJECT_log-index.md](file:///Users/martinmana/Documents/Projects/braintube/docs/PROJECT_log-index.md)
+- Add history entry for the multi-tenancy database constraint fix.
+
+#### [MODIFY] [PROJECT_log-detail.md](file:///Users/martinmana/Documents/Projects/braintube/docs/PROJECT_log-detail.md)
+- Add forensic log for this task.
+
+## Verification Plan
+
+### Manual Verification
+- Execute the SQL script in the Supabase Dashboard SQL Editor.
+- Verify that two different users can successfully add the same YouTube channel without encountering the `channels_pkey` violation.
+
+#### Walkthrough: Multi-Tenancy Fix Walkthrough
+
+I have provided the necessary SQL script to resolve the database-level constraint issue for multi-tenancy.
+
+## Changes Made
+
+### 1. Database Schema Fix
+I discovered that the Supabase schema was tracking unique YouTube channels globally as primary keys, meaning only one user could ever save a specific channel (e.g., if User A saved MKBHD, User B would receive a duplicate key error). 
+
+I created a SQL script (`docs/supabase_migration_multi_user.sql`) that modifies the `channels` and `video_metadata` tables to use **composite primary keys** (combining the YouTube ID and the `user_id`).
+
+### 2. Documentation and Verification
+Updated the project history and logs to reflect this database-level fix. The user must manually run the SQL script in their Supabase project to apply the fix.
+
+## Verification
+- Provided the SQL script to the user.
+- Awaiting confirmation that the script executes successfully in Supabase.

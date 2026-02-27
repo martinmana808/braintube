@@ -5,6 +5,10 @@ BrainTube is a curated YouTube experience allowing users to organize channels an
 **Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtubei.js.
 
 ## History
+### [2026-02-27] Fix: Duplicate Key Multi-Tenancy Error | [Technical Details](./PROJECT_log-detail.md#log-20260227-multi-tenancy-fix)
+- Created SQL migration script to change `channels` and `video_metadata` primary keys to composite keys (`id`, `user_id`).
+- Resolved issue preventing multiple users from adding the same YouTube channel.
+
 ### [2026-02-27] Video Card Layout & Saved Videos Count Fixes | [Technical Details](./PROJECT_log-detail.md#log-20260227-videocard-styling-fixes)
 - Right-aligned and styled flex column for .video-card__actions action buttons.
 - Hid delete icon button for videos properly in saved category.
