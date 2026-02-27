@@ -5,6 +5,10 @@ BrainTube is a curated YouTube experience allowing users to organize channels an
 **Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtubei.js.
 
 ## History
+### [2026-02-27] Fix: Remove Videos When Deleting Channel | [Technical Details](./PROJECT_log-detail.md#log-20260227-remove-channel-videos)
+- Cleaned up React State and LocalStorage cache on `removeChannel` call so deleted channel's videos disappear instantly from view without refreshing or waiting for cache eviction.
+
+
 ### [2026-02-27] Fix: Duplicate Key Multi-Tenancy Error | [Technical Details](./PROJECT_log-detail.md#log-20260227-multi-tenancy-fix)
 - Created SQL migration script to change `channels` and `video_metadata` primary keys to composite keys (`id`, `user_id`).
 - Resolved issue preventing multiple users from adding the same YouTube channel.

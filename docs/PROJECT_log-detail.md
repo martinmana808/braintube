@@ -875,3 +875,49 @@ Updated the project history and logs to reflect this database-level fix. The use
 ## Verification
 - Provided the SQL script to the user.
 - Awaiting confirmation that the script executes successfully in Supabase.
+
+
+<a name="log-20260227-remove-channel-videos"></a>
+## [2026-02-27] Fix: Remove Videos When Deleting Channel
+
+**User Prompt:** I had a channel, I deleted it, but their videos remained in the list, even after reloading.
+
+### Verbatim Artifacts:
+
+#### Implementation Plan: Remove videos when deleting a channel
+
+This task addresses the issue where a channel's videos persist in the UI and cache even after the user deletes the parent channel. This happens because the videos state array and the LocalStorage cache are not updated upon channel removal.
+
+## Proposed Changes
+
+### Dashboard Component
+#### [MODIFY] [Dashboard.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/pages/Dashboard.jsx)
+- In the `removeChannel` function, add a step to filter out videos from the deleted channel.
+- Apply this filter to the `videos` React state.
+- Persist the explicitly filtered list to `bt_videos_cache` in `localStorage` to ensure they do not reappear on subsequent reloads before the next sync.
+
+## Verification Plan
+
+### Manual Verification
+- Add a channel.
+- Delete the channel via the sidebar trash icon.
+- Observe that the channel's videos instantly disappear from the active feed.
+- Reload the page and ensure the videos do not reappear.
+
+
+#### Walkthrough: Remove Videos Fix Walkthrough
+
+I have updated the channel deletion logic so that ghost videos no longer stick around.
+
+## Changes Made
+
+### 1. State and Cache Cleanup
+When `removeChannel` was called, it deleted the row in Supabase and removed the channel from the `channels` React state. But it never looked at the loaded videos. 
+
+I updated the `removeChannel` handler in `Dashboard.jsx` to do the following on successful removal:
+- Filter the current `videos` array to exclude anything matching `v.channelId === id`.
+- Save this cleaned array back into state so the UI updates immediately.
+- Stringify and save the cleaned array to `localStorage` under the `bt_videos_cache` key so it persists cleanly across hard reloads.
+
+## Verification
+- Ready for manual test in the browser. Videos will now be cleanly eradicated without leaving orphaned ghosts in the feed.
