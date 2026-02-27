@@ -5,10 +5,10 @@
 ## Key Features
 
 ### 1. Curated Feed
-Your feed is organized into three focused columns:
--   **Past 7 Days & Saved**: Catch up on recent uploads from your monitored channels and access your "Saved for Later" library.
+Your feed is organized into clean, focused columns depending on your context:
 -   **Today**: See only the videos released today, keeping you up-to-date without the noise.
--   **System Config**: Manage your channels, categories, and API settings.
+-   **Past 7 Days**: Catch up on recent uploads from your monitored channels.
+-   **Saved Videos**: Access your "Saved for Later" library in its own dedicated, distraction-free column.
 
 ### 2. AI Intelligence
 BrainTube integrates with Groq's Llama 3 to supercharge your viewing:
@@ -38,8 +38,8 @@ BrainTube employs a "Supabase First" strategy to save on API costs:
 ## Getting Started
 
 ### 1. Setup
-1.  **YouTube API Key**: You need a YouTube Data API key to fetch videos. Enter it in the "System Config" panel.
-2.  **Groq API Key**: To use AI features (Summaries & Chat), get a free API key from [console.groq.com](https://console.groq.com) and enter it in the config panel.
+1.  **YouTube API Key**: You need a YouTube Data API key to fetch videos. Click your **User Profile/Avatar** at the bottom of the sidebar to access the **Settings Modal** and paste your key.
+2.  **Groq API Key**: To use AI features (Summaries), get a free API key from [console.groq.com](https://console.groq.com) and enter it in the same settings screen.
 
 ### 2. Managing Channels
 -   **Add**: Paste a Channel ID, Handle (e.g., `@Veritasium`), or URL into the "Add Channel" box.

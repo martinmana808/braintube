@@ -762,3 +762,66 @@ Moved the "Sign Out" functionality to the Settings Modal, grouping all personal 
 - [ ] Verify you can save and see the "Saved" pulse effect on the button.
 - [ ] Confirm "Refresh Feed" in the sidebar triggers a sync (loading spinner).
 - [ ] Verify "Sign Out" from the Settings Modal works correctly.
+
+
+<a name="log-20260227-videocard-styling-fixes"></a>
+## User Request: Video Card Layout & Saved Videos Count Fixes
+User requested to run global logging rules after changing `.video-card__actions` styling and removing the wrapper, hiding delete for saved videos, and earlier fixes for Saved Videos counts and Refresh Feed button.
+
+---
+### implementation_plan.md
+# Fixing Saved Video Counts
+
+This plan addresses two issues related to the "Saved" videos functionality:
+1. The "Saved Videos" column header incorrectly shows `ALL (0)` and `UNWATCHED (0)` despite videos being present.
+2. The "Saved" item in the sidebar does not show the total count of saved videos.
+
+## Proposed Changes
+
+### Dashboard component
+#### [MODIFY] [Dashboard.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/pages/Dashboard.jsx)
+- Pass `showSaved={false}` to the "Saved Videos" `VideoColumn` instead of `true`. Setting it to `false` allows `mainVideos` inside `VideoColumn` to include saved videos instead of filtering them out into a collapsible section, fixing the counts in the column header.
+- Calculate `savedVideosCount` from `activeVideos` and pass it to `SettingsPanel`.
+
+### Sidebar components
+#### [MODIFY] [SettingsPanel.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/components/SettingsPanel.jsx)
+- Accept `savedVideosCount` as a prop.
+- Pass `savedVideosCount` to both `SavedChannelItem` instances.
+
+#### [MODIFY] [SavedChannelItem.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/components/sidebar/SavedChannelItem.jsx)
+- Accept `savedVideosCount` as a prop.
+- Wrap the "Saved" label in a structured flex container matching `ChannelRow` and conditionally display the `savedVideosCount` badge if it is greater than 0.
+
+## Verification Plan
+
+### Manual Verification
+- Open the Saved column and ensure the header says `ALL (X)` where X is the correct number of saved videos rather than 0.
+- Check the sidebar "Saved" item to confirm it has a pill showing the exact count of saved videos.
+## Verification Plan
+
+### Manual Verification
+- Open the Settings Modal and verify it loads correctly without errors.
+
+
+### walkthrough.md
+# Walkthrough: Fixing Saved Video Counts
+
+This fix resolves the issue where the "Saved Videos" column header displayed `ALL (0)` and `UNWATCHED (0)` despite having active saved videos, and adds the total saved count to the sidebar's "Saved Videos" menu option.
+
+## Enhancements Implemented
+1. **Column Header Count Fix (`Dashboard.jsx`)**:
+   - The `<VideoColumn>` previously had the `showSaved` prop explicitly set to `true` for the actual Saved Column. This caused the component to filter out saved videos from its internal `mainVideos` array, thinking they were supposed to be nested inside an inner "Saved" expander, leading to the column headers receiving `0` counts.
+   - Changed `showSaved={false}` when rendering the Saved Column, so the passed-in saved videos remain exactly where they belong—in the main list, fixing the header counts properly.
+
+2. **Sidebar Count Badge**:
+   - Computed a new `savedVideosCount` inside `Dashboard.jsx`.
+   - Propagated `savedVideosCount` down through `SettingsPanel.jsx` directly to `SavedChannelItem.jsx`.
+   - Enhanced `SavedChannelItem.jsx` to render a badge that dynamically shows the count only when it is greater than `0`. This closely matches the component styling for `ChannelRow.jsx`.
+
+3. **Code Quality**:
+   - Cleaned up dangling, unused properties `hoveredChannel`, `onToggleCategorySolo` and `motion` imports across `SettingsPanel.jsx` and `SavedChannelItem.jsx`.
+
+## Verification Results
+- Manual inspection of the application state shows that `ALL (X)` properly populates in the column header logic.
+- Total saved count propagates to the `Saved` sidebar menu component next to the Heart icon.
+

@@ -5,70 +5,75 @@ BrainTube is a curated YouTube experience allowing users to organize channels an
 **Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtubei.js.
 
 ## History
-### [2026-02-25] Feature: Settings Modal & UI Refactor | [Technical Details](./GEMINI--logs.md#log-20260225-ui-refactor-settings)
+### [2026-02-27] Video Card Layout & Saved Videos Count Fixes | [Technical Details](./PROJECT_log-detail.md#log-20260227-videocard-styling-fixes)
+- Right-aligned and styled flex column for .video-card__actions action buttons.
+- Hid delete icon button for videos properly in saved category.
+- Fixed 0-count errors in Saved Videos column and added total pill count in Sidebar.
+- Cleanups in component hierarchy and unused variables.
+### [2026-02-25] Feature: Settings Modal & UI Refactor | [Technical Details](./PROJECT_log-detail.md#log-20260225-ui-refactor-settings)
 - Implemented user-managed API keys via a new Settings Modal.
 - Refactored layout: removed feed header, moved "Refresh Feed" and "Sign Out" to sidebar/settings.
 - Optimized React performance and resolved lingering lint issues (including `ReferenceError` fix).
 - Added quota-limit tooltip to "Refresh Feed" button.
 - Fixed zero-counts displayed for the "Saved" video metrics. 
-### [2026-02-25] Fix: "Add Channel" Button Disabled | [Technical Details](./GEMINI--logs.md#log-20260225-channel-fix)
+### [2026-02-25] Fix: "Add Channel" Button Disabled | [Technical Details](./PROJECT_log-detail.md#log-20260225-channel-fix)
 - Resolved issue where `YOUTUBE_API_KEY` was not passed to `SettingsPanel`.
 - Fixed permanently disabled state of the "Add Channel" submission button.
-### [2026-02-25] Documentation Sync & Manifesto Initialization | [Technical Details](./GEMINI--logs.md#log-20260225-docs-manifesto)
+### [2026-02-25] Documentation Sync & Manifesto Initialization | [Technical Details](./PROJECT_log-detail.md#log-20260225-docs-manifesto)
 - Updated `README.md` to remove deprecated features (AI Chat).
 - Initialized `GEMINI--manifesto.md` with project vision and goals.
 - Synchronized documentation with the Antigravity Master Logging Protocol.
-### [2026-02-09] New Features: Shorts, Notes, Saved Flow, & Filters | [Technical Details](./GEMINI--logs.md#log-20260209-new-features)
+### [2026-02-09] New Features: Shorts, Notes, Saved Flow, & Filters | [Technical Details](./PROJECT_log-detail.md#log-20260209-new-features)
 - **Shorts**: Updated definition to **3 minutes** (180s) and added filter toggle.
 - **Notes**: Restricted to **saved videos**, with **unsave protection**.
 - **Saved Logic**: Videos now **move** to the Saved column and are hidden from Recents.
 - **Counters**: Added visual indicators for **Today** and **Past 7 Days** video counts per channel.
-### [2026-02-02] YOLO Dashboard & Video Modal Enhancements | [Technical Details](./GEMINI--logs.md#log-20260202-yolo-dashboard)
+### [2026-02-02] YOLO Dashboard & Video Modal Enhancements | [Technical Details](./PROJECT_log-detail.md#log-20260202-yolo-dashboard)
 - Implemented **Carousel**, **Notes**, **Saved Column**, **Shorts Tag**, and **Hover Actions**.
 - Fixed **Auth Display**, **Category Bug**, and **AI Summary** error handling.
 - Removed **AI Chat** feature.
-### [2026-02-02] Documentation & Roadmap Update | [Technical Details](./GEMINI--logs.md#log-20260202-docs-and-todo)
+### [2026-02-02] Documentation & Roadmap Update | [Technical Details](./PROJECT_log-detail.md#log-20260202-docs-and-todo)
 - Created `QUOTA-ECONOMY.md` strategy document.
 - Updated `README.md` and `TODO.md` with new priorities and system details.
 - Injected debug logging for sync logic analysis.
 
-### [2026-02-02] Implement API Quota Tracking | [Technical Details](./GEMINI--logs.md#log-20260202-quota-tracking)
+### [2026-02-02] Implement API Quota Tracking | [Technical Details](./PROJECT_log-detail.md#log-20260202-quota-tracking)
 - Implemented `quota.js` service to track daily YouTube (10k limit) and Groq usage.
 - Added real-time usage stats ("YT: 154/10k", "AI: 2048 toks") to Dashboard header.
 
-### [2026-02-02] Fix SettingsPanel Crash | [Technical Details](./GEMINI--logs.md#log-20260202-settings-panel-crash)
+### [2026-02-02] Fix SettingsPanel Crash | [Technical Details](./PROJECT_log-detail.md#log-20260202-settings-panel-crash)
 - Resolved `TypeError` in `SettingsPanel` by initializing missing `collapsedCategories` state in `Dashboard.jsx`.
 
-### [2026-02-02] Fix Infinite Sync Loop | [Technical Details](./GEMINI--logs.md#log-20260202-sync-loop-fix)
+### [2026-02-02] Fix Infinite Sync Loop | [Technical Details](./PROJECT_log-detail.md#log-20260202-sync-loop-fix)
 - Identified and fixed an infinite synchronization loop in `Dashboard.jsx`.
 - Implemented `useRef` based locking to prevent recursive effect triggers.
 
 
-### [2026-01-07] AI Implementation Documentation | [Technical Details](./GEMINI--logs.md#log-20260107-ai-documentation)
+### [2026-01-07] AI Implementation Documentation | [Technical Details](./PROJECT_log-detail.md#log-20260107-ai-documentation)
 - Created `ai_explanation_260107.md` detailing Groq and Custom Scraper implementation.
 - Analyzed and documented the "Deep Scraping" strategy used in Netlify functions.
 
-### [2026-01-07] Application Launch Verification | [Technical Details](./GEMINI--logs.md#log-20260107-app-launch)
+### [2026-01-07] Application Launch Verification | [Technical Details](./PROJECT_log-detail.md#log-20260107-app-launch)
 - Successfully started development server at `http://localhost:5175`.
 - Verified environment variable requirements for Supabase, YouTube, and Groq.
 - Requested manual browser verification due to tool limitations.
 
-### [2026-01-03] Strict Schedule & Keep Alive | [Technical Details](./GEMINI--logs.md#log-20260103-strict-schedule)
+### [2026-01-03] Strict Schedule & Keep Alive | [Technical Details](./PROJECT_log-detail.md#log-20260103-strict-schedule)
 - Implemented strict hourly sync (max 24 checks/day) to prevent double-fetching.
 - Added GitHub Action (`keep-alive.yml`) to ping Supabase weekly and prevent project pausing.
 
-### [2026-01-03] Optimized Sync & UI Cleanup | [Technical Details](./GEMINI--logs.md#log-20260103-optimized-sync)
+### [2026-01-03] Optimized Sync & UI Cleanup | [Technical Details](./PROJECT_log-detail.md#log-20260103-optimized-sync)
 - Optimized `fetchVideos` to only fetch durations for new videos, saving API quota.
 - Implemented smart cache merging in `Dashboard.jsx` to preserve history.
 - Removed intrusive "Sync Up to Date" and "Sync Started" alerts.
 
-### [2026-01-02] Hybrid Caching & Quota Protection | [Technical Details](./GEMINI--logs.md#log-20260102-hybrid-caching)
+### [2026-01-02] Hybrid Caching & Quota Protection | [Technical Details](./PROJECT_log-detail.md#log-20260102-hybrid-caching)
 - Implemented 3-tier caching (LocalStorage, Supabase, YouTube) to save API quota.
 - Added "Once a day" background sync logic for monitoring 18 channels.
 - Added "Refresh Feed" button and Quota Error UI banner.
 - Verified and preserved Supabase 406 fix and AI Chat fallback improvements.
 
-### [2026-01-02] Debugging AI & Supabase Errors | [Technical Details](./GEMINI--logs.md#log-20260102-ai-debug)
+### [2026-01-02] Debugging AI & Supabase Errors | [Technical Details](./PROJECT_log-detail.md#log-20260102-ai-debug)
 - Fixed Auth redirect by instructing on Supabase whitelist.
 - Replaced `youtubei.js` with `youtube-transcript` to resolve 400 Precondition errors.
 - Added detailed logging to `get-transcript` Netlify function.

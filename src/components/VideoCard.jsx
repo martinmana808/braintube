@@ -154,7 +154,6 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
 
       {/* Actions Section */}
       <div className="video-card__actions flex items-center px-3 border-l border-gray-200 dark:border-gray-800 bg-gray-100 dark:bg-gray-900/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        <div className="flex gap-1">
           {!deleted && (
             <>
               <button 
@@ -203,15 +202,16 @@ const VideoCard = ({ video, state, onToggleSeen, onToggleSaved, onDelete, onClic
                 <Sparkles className="w-4 h-4" />
               </button>
             </>
-          )}
-          <button 
+        )}
+        {!saved && (
+          <button
             onClick={(e) => handleAction(e, onDelete)}
             className={`video-card__action-btn p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors ${deleted ? 'text-blue-500 hover:text-blue-400' : 'text-gray-400 hover:text-red-500 dark:text-gray-600 dark:hover:text-red-500'}`}
             title={deleted ? "Restore from bin" : "Put video in the bin"}
           >
             {deleted ? <RotateCcw className="w-4 h-4" /> : <Trash2 className="w-4 h-4" />}
           </button>
-        </div>
+        )}
       </div>
     </div>
   );
