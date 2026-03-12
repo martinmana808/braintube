@@ -235,7 +235,7 @@ function Dashboard() {
 
   const isSyncingRef = useRef(false);
 
-  const syncStaleChannels = useCallback(async () => {
+  const syncStaleChannels = useCallback(async (force = false) => {
     if (!YOUTUBE_API_KEY || channels.length === 0) return;
     // Prevent concurrent syncs
     if (isSyncingRef.current) return;
@@ -243,7 +243,7 @@ function Dashboard() {
 
     try {
       // Don't start sync if quota error is already active
-      if (quotaError) return;
+      if (quotaError && force !== true) return;
 
       const now = new Date();
       const currentHourStart = new Date(now);
@@ -257,9 +257,9 @@ function Dashboard() {
 
       for (const channel of activeChannels) {
         const lastSynced = channel.lastSyncedAt ? new Date(channel.lastSyncedAt).getTime() : 0;
-        const isStale = lastSynced < currentHourStartMs;
+        const isStale = (force === true) || (lastSynced < currentHourStartMs);
         
-        if ((isStale || channel.cachedVideos.length === 0) && !quotaError) {
+        if ((isStale || channel.cachedVideos.length === 0) && (!quotaError || force === true)) {
           try {
             setLoading(true);
             const latestVideos = await fetchVideos(
@@ -317,7 +317,7 @@ function Dashboard() {
 
     syncStaleChannels();
     // Check for staleness every hour
-    const interval = setInterval(syncStaleChannels, 1000 * 60 * 60); 
+    const interval = setInterval(() => syncStaleChannels(false), 1000 * 60 * 60); 
     return () => clearInterval(interval);
   }, [YOUTUBE_API_KEY, channels, quotaError, videos, syncStaleChannels]);
 

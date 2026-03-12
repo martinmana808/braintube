@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, Youtube, FolderPlus } from 'lucide-react';
+import { Plus, Youtube, FolderPlus, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const SidebarAddMenu = ({
@@ -116,6 +116,16 @@ const SidebarAddMenu = ({
                           <button
                               onClick={() => {
                                   onToggleSidebar();
+                                  setActiveAddMode('video');
+                                  setIsAddMenuOpen(false);
+                              }}
+                              className="flex items-center gap-2 w-full px-4 py-2 text-xs font-mono uppercase hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+                          >
+                              <Video className="h-3 w-4" /> Video
+                          </button>
+                          <button
+                              onClick={() => {
+                                  onToggleSidebar();
                                   setActiveAddMode('channel');
                                   setIsAddMenuOpen(false);
                               }}
@@ -139,7 +149,34 @@ const SidebarAddMenu = ({
               )}
           </div>
       ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
+
+          <button
+              onClick={() => setActiveAddMode(activeAddMode === 'video' ? null : 'video')}
+              className={`
+                sidebar-add-menu__item
+                flex 
+                flex-col 
+                items-center 
+                justify-center 
+                p-3 
+                rounded-xl 
+                border 
+                transition-all 
+                duration-200 
+                group 
+                relative 
+                overflow-hidden 
+                ${activeAddMode === 'video' 
+                  ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-500 text-blue-600 dark:text-blue-400 shadow-md scale-[1.02]' 
+                  : 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-500 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-sm hover:text-gray-700 dark:hover:text-gray-300'
+                }
+              `}
+              title="Add Video"
+          >
+              <Video className={`h-5 w-5 mb-1.5 transition-transform duration-200 ${activeAddMode === 'video' ? 'scale-110' : 'group-hover:scale-110'}`} />
+              <span className="text-[10px] font-bold font-mono uppercase tracking-wider">Video</span>
+          </button>
 
           <button
               onClick={() => setActiveAddMode(activeAddMode === 'channel' ? null : 'channel')}
@@ -198,6 +235,39 @@ const SidebarAddMenu = ({
 
       <AnimatePresence mode="wait">
 
+        {activeAddMode === 'video' && (
+          <motion.div
+            key="video-form"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+          >
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const url = e.target.elements.videoUrl.value;
+              if (url.trim()) {
+                onAddVideoByLink(url);
+                e.target.elements.videoUrl.value = '';
+                setActiveAddMode(null);
+              }
+            }} className="flex gap-2 mb-4 mt-4">
+              <input
+                autoFocus
+                name="videoUrl"
+                type="text"
+                className="flex-1 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded text-gray-900 dark:text-gray-300 text-[10px] focus:border-blue-500 outline-none px-2 py-1.5 font-mono transition-colors"
+                placeholder="Paste YouTube URL..."
+              />
+              <button
+                type="submit"
+                disabled={!YOUTUBE_API_KEY}
+                className="bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </form>
+          </motion.div>
+        )}
 
         {activeAddMode === 'channel' && (
           <motion.div

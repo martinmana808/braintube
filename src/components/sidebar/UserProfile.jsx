@@ -8,6 +8,7 @@ const UserProfile = ({
   theme, 
   toggleTheme,
   onOpenSettings,
+  onRefreshFeed,
   loading
 }) => {
   return (
@@ -96,20 +97,41 @@ const UserProfile = ({
             </div>
             
             {/* Refresh Feed Indicator */}
-            <div
-                className={`
-                  user-profile__refresh-indicator
-                  p-1.5
-                  rounded-lg
-                  text-gray-400
-                  dark:text-gray-500
-                  transition-colors
-                  ${loading ? 'animate-spin text-blue-600 dark:text-blue-400' : ''}
-                `}
-                title="App will refresh every hour just once, to save quota"
-            >
-                <RefreshCw className="w-4 h-4" />
-            </div>
+            {import.meta.env.DEV ? (
+                <button
+                    onClick={() => onRefreshFeed(true)}
+                    className={`
+                      user-profile__refresh-indicator
+                      p-1.5
+                      rounded-lg
+                      text-gray-400
+                      hover:bg-gray-200
+                      dark:hover:bg-gray-800
+                      hover:text-blue-500
+                      dark:hover:text-blue-400
+                      transition-colors
+                      ${loading ? 'animate-spin text-blue-600 dark:text-blue-400' : ''}
+                    `}
+                    title="Force refresh feed (DEV ONLY)"
+                >
+                    <RefreshCw className="w-4 h-4 cursor-pointer" />
+                </button>
+            ) : (
+                <div
+                    className={`
+                      user-profile__refresh-indicator
+                      p-1.5
+                      rounded-lg
+                      text-gray-400
+                      dark:text-gray-500
+                      transition-colors
+                      ${loading ? 'animate-spin text-blue-600 dark:text-blue-400' : ''}
+                    `}
+                    title="App will refresh every hour just once, to save quota"
+                >
+                    <RefreshCw className="w-4 h-4" />
+                </div>
+            )}
 
             {/* Theme Toggle - Sun/Moon Icons */}
             <button
