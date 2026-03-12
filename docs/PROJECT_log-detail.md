@@ -921,3 +921,47 @@ I updated the `removeChannel` handler in `Dashboard.jsx` to do the following on 
 
 ## Verification
 - Ready for manual test in the browser. Videos will now be cleanly eradicated without leaving orphaned ghosts in the feed.
+
+<a name="log-20260312-add-video-and-force-fetch"></a>
+## [2026-03-12] Restore Manual Add Video & Dev Force Fetch
+
+**User Prompt:** I can see we lost the option to add a video to the saved videos. Not from the list, but manually add a video. We need that. Add it back, and run the project so i can test before pushing ...im not getting any fetched video in local. Probably because we've already FETCHED this hour in the database, because its live and i checked it. Could we have (ONLY IN DEV) a button to allow forcefetch? that way we can properly debug. 
+
+### Verbatim Artifacts:
+
+#### Implementation Plan: Adding Force Fetch in Dev Mode
+
+The user wants a "Force Fetch" feature, available only during development, to bypass the 1-hour fetch throttling from YouTube API to help with debug testing.
+
+## Proposed Changes
+
+### [MODIFY] [Dashboard.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/pages/Dashboard.jsx)
+- Update `syncStaleChannels` to optionally accept a `force` boolean argument.
+- If `force === true`, ignore the `quotaError` check up front and treat the data as always stale (`isStale = true`).
+- Ensure the `setInterval` call correctly invokes `syncStaleChannels(false)` without dropping interval arguments into `force`.
+
+### [MODIFY] [UserProfile.jsx](file:///Users/martinmana/Documents/Projects/braintube/src/components/sidebar/UserProfile.jsx)
+- Import `import.meta.env.DEV` indirectly (since Vite provides it statically) or just use the `import.meta.env.DEV` global.
+- Check if `import.meta.env.DEV` is truthy.
+- If it is, swap the static `<div className="user-profile__refresh-indicator">` with a `<button>` that triggers `onRefreshFeed(true)` when clicked, and updating the title to indicate it's a DEV ONLY force fetch.
+- If not DEV, keep the existing non-clickable indicator. 
+
+## Verification Plan
+
+### Manual Verification
+- We are currently running the dev server. I will visually inspect the UserProfile to ensure the button is added and test the behavior.
+
+#### Walkthrough: Restored Manual Add Video and Added Dev-Only Force Fetch
+
+## Changes Made
+- Added a `force` parameter to the `syncStaleChannels` function in `Dashboard.jsx`. This enforces the sync check manually ignoring timestamp staleness constraints and optionally bypassing normal quota blocks if force is passed as `true`.
+- Upgraded the `RefreshCw` icon container inside `UserProfile.jsx` into a clickable `<button>` element only when running under development mode (`import.meta.env.DEV`). 
+- Clicking this `RefreshCw` button will actively call `syncStaleChannels(true)` guaranteeing a refresh. In production, this falls back to just being a status indicator.
+- Restored functionality of the Add Video option, placing it alongside the 'Create Channel' and 'Add Category' buttons inside the Sidebar Add Menu UI (`SidebarAddMenu.jsx`).
+
+## Validation
+- The local React development server is running on `http://localhost:5173/`. 
+- Look for the refresh icon button in the User Profile section down at the bottom left of the sidebar.
+- Click the button to watch the `Network` tab and ensure it forcefully initiates the sync protocol with the `fetchVideos` function correctly avoiding previous 1-hour limits.
+- Also open the Sidebar Add Menu, and ensure there is an 'Add Video' button beside the native 'Add Channel' features.
+- Provide a YouTube video link inside the 'Add Video' UI container and ensure it triggers the `addVideoByLink` operation nicely.
