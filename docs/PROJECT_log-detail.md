@@ -965,3 +965,65 @@ The user wants a "Force Fetch" feature, available only during development, to by
 - Click the button to watch the `Network` tab and ensure it forcefully initiates the sync protocol with the `fetchVideos` function correctly avoiding previous 1-hour limits.
 - Also open the Sidebar Add Menu, and ensure there is an 'Add Video' button beside the native 'Add Channel' features.
 - Provide a YouTube video link inside the 'Add Video' UI container and ensure it triggers the `addVideoByLink` operation nicely.
+
+<a name="log-20260313-ai-video-summaries"></a>
+## [2026-03-13] AI Video Summaries with Timestamps
+
+**User Prompt:** I'm testing the production site and when I click on Samurai's video, it says that there is no transcript available for the video. If I see that video on YouTube, there is a transcript. When I click on "Ask about the video with AI" on YouTube, it gives me the most perfect video summary description with keyframes and keytimes. It's insane. Please check it out. We need to do something like this. It's done with Gemini. It says that it uses Gemini.
+
+### Verbatim Artifacts:
+
+#### Implementation Plan: Implement AI Video Summaries with Timestamps
+
+## Goal
+Fix transcript fetching to be more reliable and update the AI summary generation to include keyframes and timestamps, similar to the YouTube Gemini feature.
+
+## Proposed Changes
+
+### Backend Function
+#### [MODIFY] get-transcript.js
+- Replace the fragile custom HTML scraping regex with the \`youtube-transcript\` library to fetch transcripts reliably.
+- Map the transcript data (which contains \`offset\` in milliseconds) into a formatted string: \`[MM:SS] text\`.
+- Keep the fallback logic to fetch the video description if the transcript is truly unavailable or disabled.
+
+### Frontend Service
+#### [MODIFY] ai.js
+- Update the system prompted in \`generateSummary\` to explicitly request that the LLM generates a summary with key moments and their corresponding \`[MM:SS]\` timestamps, matching YouTube's output style.
+- The prompt will instruct the AI to use the timestamped transcript correctly.
+
+## Verification Plan
+
+### Manual Verification
+1. Start the development server (\`npm run dev\`).
+2. Add a video to BrainTube (e.g., Samurai's video or any recent video with a transcript).
+3. Click on the video to open the \`VideoModal\`.
+4. Click "Generate Summary".
+5. Verify that the AI summary is generated specifically with key moments and timestamps.
+6. Check that clicking on videos that previously said "no transcript available" can now properly fetch their transcripts.
+
+#### Walkthrough: AI Video Summaries with Timestamps
+
+Improved the reliability of YouTube transcript fetching and implemented an enhanced AI summary feature inspired by YouTube's Gemini integration.
+
+## Changes
+
+### 1. Robust Transcript Fetching
+Refactored \`netlify/functions/get-transcript.js\` to use the \`youtube-transcript\` library. This is more reliable than custom HTML scraping and automatically handles various YouTube edge cases.
+
+### 2. Timestamp Integration
+The fetched transcript now includes \`[MM:SS]\` timestamps for every segment. This data is passed to the AI to provide context for "Key Moments".
+
+### 3. Enhanced AI Summaries
+Updated the \`generateSummary\` prompt in \`src/services/ai.js\`. The AI now generates:
+- A brief **Overview**.
+- A list of **Key Moments** with explicit \`[MM:SS]\` timestamps.
+- High-level **Main Takeaways**.
+
+### 4. Clickable UI Timestamps
+Modified \`src/components/VideoModal.jsx\` to parse \`[MM:SS]\` patterns in the AI summary and render them as **clickable buttons**. Clicking a timestamp will automatically seek the YouTube player to that specific moment.
+
+## Verification Results
+
+1.  **Test Transcript Reliability**: Clicked on various videos. Transcripts are now fetched successfully more often.
+2.  **Generate AI Summary**: Summary now generates with headers and key moments.
+3.  **Verify Timestamps**: Clickable timestamps appear in blue and correctly seek the player.

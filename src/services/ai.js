@@ -16,8 +16,17 @@ export const generateSummary = async (transcript, apiKey) => {
     
     Available Text: ${transcript.substring(0, 5000)}`;
   } else {
-    prompt = `Summarize the following YouTube transcript in a detailed, bulleted format. Highlight key takeaways.
+    prompt = `The following is a YouTube transcript with [MM:SS] timestamps.
     
+    TASK: Provide a comprehensive summary of the video.
+    
+    STRUCTURE:
+    1. **Overview**: A brief 2-3 sentence summary of the video's main theme.
+    2. **Key Moments**: A bulleted list of the most important segments. 
+       - FOR EACH MOMENT: You MUST include the [MM:SS] timestamp (e.g., "1. [02:15] Title of moment - Description").
+       - Pick 5-10 key moments that represent the flow of the video.
+    3. **Main Takeaways**: 3-5 high-level conclusions or insights.
+
     Transcript: ${transcript.substring(0, 25000)}`;
   }
 
@@ -62,10 +71,10 @@ export const chatWithVideo = async (transcript, history, question, apiKey) => {
        - Focus on the main topic, creators, and tools mentioned.
        - If you can't find the answer, try to provide relevant context from the description or suggest what the video might cover.
        - BE HELPFUL and avoid saying "the transcript doesn't mention" since we know it's a description.`
-    : `You are a helpful assistant answering questions about a YouTube video based on its transcript. 
+    : `You are a helpful assistant answering questions about a YouTube video based on its transcript which includes [MM:SS] timestamps. 
        Transcript: ${transcript.substring(0, 25000)}
        
-       Answer the user's question based on the transcript. If the answer is not directly there, use the context to provide the best possible response.`;
+       Answer the user's question based on the transcript. If the user asks about specific times or parts, use the [MM:SS] labels to guide them.`;
 
   const messages = [
     { role: 'system', content: systemPrompt },

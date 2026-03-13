@@ -2,13 +2,18 @@
 
 ## Project Summary
 BrainTube is a curated YouTube experience allowing users to organize channels and leverage AI for video summaries and chat.
-**Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtubei.js.
+**Tech Stack**: React, Vite, Tailwind CSS, Netlify Functions, Groq API (Llama 3), youtube-transcript.
 
 ### [2026-03-12] Restore Manual Add Video & Dev Force Fetch | [Technical Details](./PROJECT_log-detail.md#log-20260312-add-video-and-force-fetch)
 - Safely relocated Add Video to existing Sidebar Add dropdown to improve accessibility across columns
 - Created conditional UI elements relying on import.meta.env.DEV targeting power users in localhost debugging contexts
 - Resolved related missing UI dependencies & warnings that interfered with code cleanliness
 
+
+### [2026-03-13] AI Video Summaries with Timestamps | [Technical Details](./PROJECT_log-detail.md#log-20260313-ai-video-summaries)
+- Improved transcript reliability by switching to `youtube-transcript` library
+- Enhanced AI summaries to include structured Key Moments with timestamps
+- Implemented clickable UI timestamps in the video modal to seek the player
 
 ## History
 ### [2026-02-27] Fix: Remove Videos When Deleting Channel | [Technical Details](./PROJECT_log-detail.md#log-20260227-remove-channel-videos)

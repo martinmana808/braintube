@@ -7,7 +7,7 @@ BrainTube is a curated, distraction-free YouTube experience designed for learnin
 YouTube's recommendation algorithm optimizes for watch time and engagement, often leading users into time-wasting loops. Information density is lost in clickbait, and true value is often buried. BrainTube solves this by:
 - Giving control back to the user: you only see exact channels you opt-in to see.
 - Categorizing and organizing creators to separate pure entertainment from learning.
-- Enhancing video consumption with 1-click AI summaries to extract value faster.
+- Enhancing video consumption with 1-click AI summaries to extract value faster, now with **interactive key moments and timestamps**.
 - Strictly limiting fetching cycles to preserve API quotas and reduce FOMO (Fear Of Missing Out).
 
 ## Roadmap
@@ -18,5 +18,6 @@ YouTube's recommendation algorithm optimizes for watch time and engagement, ofte
 - [x] Shorts Tagging and duration filtering
 - [x] Saved Notes & Video Retention
 - [x] Dedicated UI Refactors (Settings Modal, Saved Videos isolation)
+- [x] Robust AI Summaries with Interactive Timestamps
 - [ ] Implement enhanced tagging system
 - [ ] Support custom API key management per feature

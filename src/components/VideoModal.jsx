@@ -4,7 +4,7 @@ import YouTube from 'react-youtube';
 import { X, Sparkles, Loader, Eye, EyeOff, Heart, Trash2, RotateCcw, Tag, Download, Share2, Check, Copy, ChevronLeft, ChevronRight, PenLine, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { supabase } from '../services/supabase';
-import { generateSummary as generateSummaryService, generateTags } from '../services/ai';
+import { generateSummary as generateSummaryService } from '../services/ai';
 import LZString from 'lz-string';
 
 const VideoModal = ({ video, onClose, state, onToggleSeen, onToggleSaved, onDelete, onUpdateNotes, onNext, onPrev, hasNext, hasPrev }) => {
@@ -401,7 +401,76 @@ This was created and copied in BrainTube`;
                 {summary ? (
                   <div className="prose prose-sm max-w-none dark:prose-invert">
                     <div className="text-gray-800 dark:text-gray-300 leading-relaxed">
-                      <ReactMarkdown>{summary}</ReactMarkdown>
+                      <ReactMarkdown
+                        components={{
+                          p: ({ children }) => {
+                            if (typeof children === 'string') {
+                              const parts = children.split(/(\[\d{2}:\d{2}\])/g);
+                              return (
+                                <p>
+                                  {parts.map((part, i) => {
+                                    const match = part.match(/\[(\d{2}):(\d{2})\]/);
+                                    if (match) {
+                                      const mins = parseInt(match[1]);
+                                      const secs = parseInt(match[2]);
+                                      const totalSecs = mins * 60 + secs;
+                                      return (
+                                        <button
+                                          key={i}
+                                          onClick={() => playerRef.current?.seekTo(totalSecs, true)}
+                                          className="text-blue-500 hover:text-blue-600 font-mono font-bold mx-0.5"
+                                        >
+                                          {part}
+                                        </button>
+                                      );
+                                    }
+                                    return part;
+                                  })}
+                                </p>
+                              );
+                            }
+                            return <p>{children}</p>;
+                          },
+                          li: ({ children }) => {
+                            // Recursively check children for strings to replace
+                            const processChildren = (nodes) => {
+                                return React.Children.map(nodes, (child) => {
+                                    if (typeof child === 'string') {
+                                        const parts = child.split(/(\[\d{2}:\d{2}\])/g);
+                                        return parts.map((part, i) => {
+                                            const match = part.match(/\[(\d{2}):(\d{2})\]/);
+                                            if (match) {
+                                                const mins = parseInt(match[1]);
+                                                const secs = parseInt(match[2]);
+                                                const totalSecs = mins * 60 + secs;
+                                                return (
+                                                    <button
+                                                        key={i}
+                                                        onClick={() => playerRef.current?.seekTo(totalSecs, true)}
+                                                        className="text-blue-500 hover:text-blue-600 font-mono font-bold mx-0.5"
+                                                    >
+                                                        {part}
+                                                    </button>
+                                                );
+                                            }
+                                            return part;
+                                        });
+                                    }
+                                    if (React.isValidElement(child) && child.props.children) {
+                                        return React.cloneElement(child, {
+                                            children: processChildren(child.props.children)
+                                        });
+                                    }
+                                    return child;
+                                });
+                            };
+
+                            return <li>{processChildren(children)}</li>;
+                          }
+                        }}
+                      >
+                        {summary}
+                      </ReactMarkdown>
                     </div>
                   </div>
                 ) : (
